@@ -33,3 +33,8 @@ hist(subset(pollution, region == "east")$pm25, col = "green")
 hist(subset(pollution, region == "west")$pm25, col = "green")
 
 
+library(ggplot2)
+load("data/maacs (2).Rda")
+str(maacs)
+
+
