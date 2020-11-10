@@ -1,0 +1,448 @@
+---
+title: "course 2"
+output: html_document
+---
+
+this is mark down to test some code i get and work with videos 
+
+<- c will make vector 
+the vector is needed alot in the R language 
+
+channge one atrribute 
+the  c must be there to vetor it 
+
+```r
+dim(m) <- c(2,3)
+```
+
+creat the matrix throw c bind and r bind 
+
+
+## factors
+
+it's used to represent the categrical data 
+it's a vetror where each value has label 
+1 0  m or F 
+1  2 3 4 5 6 7 A B C D ordered one 
+
+
+
+```{r}
+x <- factor(c( "yes" , "yes","no" ))
+
+table(x)
+
+```
+
+levels here are yes and no 
+
+```
+unclass
+```
+
+order the level 
+
+
+```{r}
+x <- factor(c( "yes" , "yes","no") 
+               , levels= c('yes','no')
+               )
+
+table(x)
+```
+
+
+
+## msiing values 
+
+```
+is.na( x )
+is.nan( x )
+```
+is na will come true if it's nan 
+nan will not be true with na 
+
+## data frame 
+
+```
+read.table()
+read.csv()
+data.matrix()
+```
+
+```{r}
+x <- data.frame(foo = 1:4 , bar = c(T,T,F,F) )
+x
+```
+
+
+## connections
+
+```
+file 
+gzfile ##combress
+bzfile ##combress
+url ## web
+
+r read 
+w write
+a append
+rb wb ab 
+```
+use 
+
+```
+con <- file('name' , 'r')
+date <- read.csv(con)
+close(con)
+```
+## subset
+
+[ ] the same thing i subset from 
+[[ ]] of list or data frame it will be some thing in it value dataframe or or 
+$withname
+
+$any part of the name for the list 
+
+[[ the name of the item in the list  ]]
+
+## mssing values 
+
+```
+bad <- is.na(x)
+x[!bad]
+complete.cases(x , y ) # will return the non missing values as True or false 
+```
+
+## vectorized operation
+
+ + will be elemt wise 
+ 
+ \> all the > 
+
+* will be elemnt wise 
+
+ x / y element wise 
+%*% will be actual multible matrix 
+
+## controll structure 
+
+- if , else if , else
+- for 
+- while 
+- repeat
+- break 
+- next 
+- return
+
+### if 
+```{r}
+if (x> 3 ) {
+    y <- 10
+}else{
+    y <- 0
+}
+```
+or assign the value to y 
+
+```{r}
+y<- if (x> 3 ) {
+    10
+}else{
+    0
+}
+```
+
+### for loops
+```{r}
+for (i in 1:10){
+print(i)
+}
+```
+
+
+### remeber seq_along
+
+### for i in x 
+
+### one line 
+```{r}
+for(i in 1:4) print(i)
+```
+
+
+## while 
+
+
+```{r}
+coutn <- 0
+while(coutn < 10) {
+    print(coutn)
+    coutn <- coutn + 1
+}
+```
+
+## fuctions
+
+```{r}
+name <- function(inp1, inp2){
+    inp1 + inp2
+}
+
+```
+
+```{r}
+args(paste)
+```
+
+the ... indicate that the arguments before it are not defined as it could be any nubmer of arguments 
+
+where we have to defin the ```sep =``` as the function cant know other wise what to do 
+
+### explore function closure 
+
+ls(enviroment(function))
+get("argument" , enviroment(function))
+
+###Dates 
+
+are represented by the Date class and can be coerced from a character string using the
+as.Date() function.
+
+```{r}
+x <- as.Date("1970-01-01")
+x
+```
+```{r}
+unclass(x)
+```
+
+```{r}
+unclass(as.Date("1970-01-02"))
+```
+
+`POSIXct` is just a very large integer under the hood; it use a useful class when you want to store
+times in something like a data frame
+`POSIXlt` is a list underneath and it stores a bunch of other useful information like the day of the
+week, day of the year, month, day of the month
+
+Times can be coerced from a character string using the `as.POSIXlt` or `as.POSIXct` function
+
+xlt are like list 
+so i can call 
+
+`p$sec` and it will get me the seconds of the list 
+
+
+### strp time 
+Finally, there is the `strptime` function in case your dates are written in a different format
+b month 
+d day 
+y year 
+h hour 
+m men
+```{r}
+datestring <- c("January 10, 2012 10:40", "December 9, 2011 9:10")
+x <- strptime(datestring, "%B %d, %Y %H:%M")
+x
+```
+
+
+## loop functions 
+- **lapply**: Loop over a list and evaluate a function on each element
+- 
+- **sapply**: Same as lapply but try to simplify the result
+- 
+- **apply:** Apply a function over the margins of an array
+- 
+- **tapply**: Apply a function over subsets of a vector
+- 
+- **mapply**: Multivariate version of lapply
+
+
+### l apply 
+```{r}
+lapply
+```
+
+lapply always returns a list, regardless of the class of the input
+
+### s apply
+
+**sapply** will try to simplify the result of lapply if possible.
+
+
+### apply 
+**apply** is used to a evaluate a function (often an anonymous one) over the margins of an array.
+
+```{r}
+apply
+```
+X is an array
+MARGIN is an integer vector indicating which margins should be “retained”.
+FUN is a function to be applied
+... is for other arguments to be passed to FUN
+
+columns and rows means 
+
+For sums and means of matrix dimensions, we have some shortcuts.
+
+`rowSums = apply(x, 1, sum)`
+`rowMeans = apply(x, 1, mean)`
+`colSums = apply(x, 2, sum)`
+`colMeans = apply(x, 2, mean)`
+
+·
+
+### m apply
+·
+mapply is a multivariate apply of sorts which applies a function in parallel over a set of arguments
+·
+2 diffrent elemnts from lists or what ever 
+
+```{r}
+mapply
+```
+
+
+
+#tapply 
+
+**tapply** is used to apply a function over subsets of a vector. I don’t know why it’s called tapply.
+
+```{r}
+str(tapply)
+```
+
+
+
+X is a vector
+INDEX is a factor or a list of factors (or else they are coerced to factors) into groups 
+FUN is a function to be applied >> mean or any function 
+... contains other arguments to be passed FUN
+simplify, should we simplify the result? like s apply 
+```{r}
+x <- c(rnorm(10), runif(10), rnorm(10, 1)) #the data into 3 groups 
+f <- gl(3, 10) # factor variables 
+tapply(x, f, mean) # will apply the mean for the 3 groups seprately usuing the 3 levels from the factor vairables 
+```
+
+
+
+### split 
+ it's used as conjuction with functions like s apply and t apply 
+split takes a vector or other objects and splits it into groups determined by a factor or list of factors.
+```{r}
+str(split)
+```
+
+x is a vector (or list) or data frame
+f is a factor (or coerced to one) or a list of factors
+drop indicates whether empty factors levels should be dropped
+
+```{r}
+x <- c(rnorm(10), runif(10), rnorm(10, 1)) #the data into 3 groups 
+f <- gl(3, 10) # factor variables 
+split(x, f)
+```
+
+`lapply(split(x, f), mean)` #like t apply 
+
+```{r}
+library(datasets)
+head(airquality)
+```
+
+```{r}
+s <- split(airquality, airquality$Month)
+lapply(s, function(x) colMeans(x[, c("Ozone", "Solar.R", "Wind")]))
+
+```
+
+and i can put it in matrix wiwith s apply 
+```{r}
+sapply(s, function(x) colMeans(x[, c("Ozone", "Solar.R", "Wind")])) 
+```
+
+i can get the na with removing the na values 
+```{r}
+sapply(s, function(x) colMeans(x[, c("Ozone", "Solar.R", "Wind")], na.rm = TRUE)) 
+
+```
+i can have more than factor M/F and Race
+
+```{r}
+x <- rnorm(10)
+f1 <- gl(2, 5)
+f2 <- gl(5, 2)
+interaction(f1, f2)
+```
+```{r}
+str(split(x, list(f1, f2))) # auto call the interaction function in the split 
+```
+
+i can use it for drop the empty values 
+```{r}
+ str(split(x, list(f1, f2), drop = TRUE))
+```
+#debug
+
+1. **traceback**: prints out the function call stack after an error occurs; does nothing if there’s no error
+2. **debug**: ﬂags a function for “debug” mode which allows you to step through execution of a function
+3. one line at a time
+4. **browser**: suspends the execution of a function wherever it is called and puts the function in
+5. debug mode
+6. **trace**: allows you to insert debugging code into a function a speciﬁc places
+7. **recover**: allows you to modify the error behavior so that you can browse the function call stack
+
+
+## simulation 
+
+###Normal distributions
+
+1. rnorm: generate random Normal variates with a given mean and standard deviation
+2. dnorm: evaluate the Normal probability density (with a given mean/SD) at a point (or vector of
+3. points)
+4. pnorm: evaluate the cumulative distribution function for a Normal distribution
+5. rpois: generate random Poisson variates with a given rate
+
+Probability distribution functions usually have four functions associated with them. The functions are
+preﬁxed with a
+
+- d for density
+- r for random number generation
+- p for cumulative distribution
+- q for quantile function
+```
+dnorm(x, mean = 0, sd = 1, log = FALSE)
+pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)
+qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)
+rnorm(n, mean = 0, sd = 1)
+```
+use the `set.seed(1)`
+
+
+### Generating Poisson data
+```
+rpois(10, 1)
+rpois(10, 2)
+ppois(2, 2)  ## Cumulative distribution
+```
+
+## Generating  Random Numbers From a Linear Model
+```{r}
+x <- rnorm(100)
+e <- rnorm(100, 0, 2)
+y <- 0.5 + 2 * x + e
+summary(y)
+```
+
+### sample from any numbers 
+
+```
+sample(1:10, 4)
+sample(1:10, replace = TRUE)  ## Sample w/replacement
+```
+
+
+
