@@ -1,0 +1,67 @@
+---
+title: "cheat sheet"
+author: "mohey"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---use to download if not exist 
+
+```{r eval=F}
+
+path <- getwd()
+
+list.files(path)
+
+file_name <- 
+    
+directory <- paste(path ,"data" , file_name, sep = '/')
+
+
+url <- 
+    
+if (file.exists(wantedfile)){
+    print("you are good to go")
+} else {
+    download.file(url, destfile = directory )
+    print('file downloaded and you good to go')
+    #unzip(zipfile = "dataFiles.zip") use it if it's a zip or it's a rar file 
+    
+}
+```
+
+---read files 
+```{r eval= F}
+directory <- 
+file_name <- 
+destination <-paste(directory ,file_name, sep = '/')
+
+DT <- data.table::fread(destination)
+head(DT)
+```
+
+
+---columns names 
+
+edit name 
+
+```{r eval = F}
+#the full steps 
+splitNames = strsplit(names(cameraData),"\\.") #split the elemnts 
+firstElement <- function(i){i[1]} #creat the function 
+sapply(splitNames,firstElement) # apply the function
+```
+
+
+
+
+## Fixing character vectors - sub()
+
+```{r,  eval = F }
+names(reviews)
+sub("_","",names(reviews),) #remove thing by replace with nothing 
+```

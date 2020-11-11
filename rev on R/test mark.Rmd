@@ -444,5 +444,9 @@ sample(1:10, 4)
 sample(1:10, replace = TRUE)  ## Sample w/replacement
 ```
 
+## the str 
+
+
+
 
 

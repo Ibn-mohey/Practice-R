@@ -1,0 +1,1285 @@
+---
+title: "getting and clean"
+author: "mohey"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+```
+
+getwd()
+
+setwd()
+
+have to use '\\\\' not '\\'
+
+```{r eval = FALSE}
+if (!file.exists('the file'))
+{
+    dir.create('data')
+}
+```
+
+downlaod needs
+url = 
+distination = "./data/cameras.csv"
+method =
+```{r eval = FALSE}
+url <-  
+distination <- 
+download.file(url, destfile = distination , method = method)
+
+path <- getwd()
+```
+
+datedownlaodeddate <- date()
+
+## reading date 
+
+read.table(file , sep = ',' , header = TRUE)
+more to add 
+
+1. quote ="" resolve having ` ' " in the data 
+2. ba.strings
+3. nrwos
+4. skip
+
+read.csv(file)
+
+read.csv2()
+
+## reading excell files 
+
+library(xlsx)
+
+read.xlsx()
+
+cameraData <- read.xlsx("./data/cameras.xlsx",sheetIndex=1,header=TRUE)
+
+## Reading specific rows and columns
+
+
+```{r eval =FALSE}
+colIndex <- 2:3
+rowIndex <- 1:4
+cameraDataSubset <- read.xlsx("./data/cameras.xlsx",sheetIndex=1,
+                              colIndex=colIndex,rowIndex=rowIndex)
+cameraDataSubset
+```
+
+## xml
+
+
+* Extensible markup language
+* Frequently used to store structured data
+* Particularly widely used in internet applications
+* Extracting XML is the basis for most web scraping
+* Components
+  * Markup - labels that give the text structure
+  * Content - the actual text of the document
+  
+## Tags, elements and attributes
+
+* Tags correspond to general labels
+  * Start tags `<section>`
+  * End tags `</section>`
+  * Empty tags `<line-break />`
+* Elements are specific examples of tags
+  * `<Greeting> Hello, world </Greeting>`
+* Attributes are components of the label
+  * `<img src="jeff.jpg" alt="instructor"/>`
+  * `<step number="3"> Connect A to B. </step>`
+  
+```{r eval = FALSE }
+library(XML)
+fileUrl <- "http://www.w3schools.com/xml/simple.xml"
+doc <- xmlTreeParse(fileUrl,useInternal=TRUE)
+rootNode <- xmlRoot(doc)
+xmlName(rootNode)
+names(rootNode)
+```
+
+
+```{r eval = FALSE}
+rootNode[[1]]
+root
+```
+
+
+
+## Programatically extract parts of the file
+
+```{r explore2, dependson="xmldata", eval = FALSE}
+xmlSApply(rootNode,xmlValue)
+```
+
+
+## Extract content by attributes
+
+```{r htmldata, eval = FALSE}
+fileUrl <- "http://espn.go.com/nfl/team/_/name/bal/baltimore-ravens"
+doc <- htmlTreeParse(fileUrl,useInternal=TRUE)
+scores <- xpathSApply(doc,"//li[@class='score']",xmlValue)
+teams <- xpathSApply(doc,"//li[@class='team-name']",xmlValue)
+scores
+teams
+```
+
+
+#json
+
+## JSON
+
+* Javascript Object Notation
+* Lightweight data storage
+* Common format for data from application programming interfaces (APIs)
+* Similar structure to XML but different syntax/format
+* Data stored as
+  * Numbers (double)
+  * Strings (double quoted)
+  * Boolean (_true_ or _false_)
+  * Array (ordered, comma separated enclosed in square brackets _[]_)
+  * Object (unorderd, comma separated collection of key:value pairs in curley brackets _{}_)
+  
+  
+  
+```{r eval = F ,readJSON}
+library(jsonlite)
+jsonData <- fromJSON("https://api.github.com/users/jtleek/repos")
+names(jsonData)
+jsonData$name
+```
+
+
+```{r}
+library(data.table)
+DF = data.frame(x=rnorm(9),y=rep(c("a","b","c"),each=3),z=rnorm(9))
+head(DF,3)
+DT = data.table(x=rnorm(9),y=rep(c("a","b","c"),each=3),z=rnorm(9))
+head(DT,3)
+```
+
+### See all the data tables in memory
+
+```{r}
+tables()
+```
+
+
+## Subsetting rows
+
+```{r}
+DT[2,]
+DT[DT$y=="a",]
+
+#or 
+
+DT[c(2,3)]
+```
+* The argument you pass after the comma is called an "expression"
+* In R an expression is a collection of statements enclosed in curley brackets 
+
+in the second part we pass  a list of functions we need to perform on the DT 
+## Adding new columns
+use `:=`
+
+```{r}
+DT[,w:=z^2]
+DT
+```
+
+### use the copy fuction not assign 
+
+
+## Multiple operations
+
+```{r,dependson="init"}
+DT[,m:= {tmp <- (x+z); log2(tmp+5)}]
+DT
+```
+```{r}
+DT[, y:= 2]
+DT[,a:=x>0]
+DT
+```
+
+```{r}
+DT[,b:= mean(x+w),by=a]
+DT
+```
+
+
+
+## Special variables
+
+`.N` An integer, length 1, containing the number of elements of a factor level 
+
+```{r}
+set.seed(123);
+DT <- data.table(x=sample(letters[1:3], 1E5, TRUE))
+DT[, .N, by=x]
+```
+
+here was count of all the diffrent vairables in the data frame using .N
+
+----
+
+## Keys
+`setkey(DT, x)`
+
+```{r}
+DT <- data.table(x=rep(c("a","b","c"),each=100), y=rnorm(300))
+setkey(DT, x)
+DT['a']
+```
+
+
+
+## Joins
+
+```{r}
+DT1 <- data.table(x=c('a', 'a', 'b', 'dt1'), y=1:4)
+DT2 <- data.table(x=c('a', 'b', 'dt2'), z=5:7)
+setkey(DT1, x); setkey(DT2, x)
+merge(DT1, DT2)
+```
+
+
+
+---
+
+## Fast reading
+
+```{r eval = F}
+big_df <- data.frame(x=rnorm(1E6), y=rnorm(1E6))
+file <- tempfile()
+write.table(big_df, file=file, row.names=FALSE, col.names=TRUE, sep="\t", quote=FALSE)
+system.time(fread(file))
+system.time(read.table(file, header=TRUE, sep="\t"))
+```
+
+
+----
+
+## web scrabing 
+
+
+```{reval=F}
+con = url("http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en")
+htmlCode = readLines(con)
+close(con)
+htmlCode
+```
+
+
+## Parsing with XML
+
+```{r eval=F }
+library(XML)
+url <- "http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en"
+html <- htmlTreeParse(url, useInternalNodes=T)
+
+xpathSApply(html, "//title", xmlValue)
+xpathSApply(html, "//td[@id='col-citedby']", xmlValue)
+```
+
+
+## GET from the httr package
+
+```{r eval=F}
+library(httr); 
+url <- "http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en"
+html2 = GET(url)
+content2 = content(html2,as="text")
+parsedHtml = htmlParse(content2, asText=TRUE)
+xpathSApply(parsedHtml, "//title", xmlValue)
+```
+
+if u need password and loging we can ussing httr
+
+```{r eval=F}
+pg2 = GET("http://httpbin.org/basic-auth/user/passwd",
+    authenticate("user","passwd"))
+pg2
+names(pg2)
+```
+
+## Using handles
+to make sure we dont have to authenticate every time 
+```{r eval=F}
+google = handle("http://google.com")
+pg1 = GET(handle=google,path="/")
+pg2 = GET(handle=google,path="search")
+```
+
+
+---
+
+## Accessing Twitter from R
+
+```{r,eval=FALSE}
+myapp = oauth_app("twitter",
+                   key="yourConsumerKeyHere",secret="yourConsumerSecretHere")
+sig = sign_oauth1.0(myapp,
+                     token = "yourTokenHere",
+                      token_secret = "yourTokenSecretHere")
+#same with getting data of the internet 
+homeTL = GET("https://api.twitter.com/1.1/statuses/home_timeline.json", sig)
+```
+
+## Converting the json object
+
+```{r eval=FALSE}
+json1 = content(homeTL)
+json2 = jsonlite::fromJSON(toJSON(json1))
+json2[1,1:4]
+```
+
+```
+                      created_at           id             id_str
+1 Mon Jan 13 05:18:04 +0000 2014 4.225984e+17 422598398940684288
+                                                                                                                                         text
+1 Now that P. Norvig's regex golf IPython notebook hit Slashdot, let's see if our traffic spike tops the previous one: http://t.co/Vc6JhZXOo8
+```
+
+
+## In general look at the documentation
+
+
+* httr allows `GET`, `POST`, `PUT`, `DELETE` requests if you are authorized
+* You can authenticate with a user name or a password
+* Most modern APIs use something like oauth
+* httr works well with Facebook, Google, Twitter, Githb, etc.
+
+---
+
+```{r subsetting}
+set.seed(13435)
+X <- data.frame("var1"=sample(1:5),"var2"=sample(6:10),"var3"=sample(11:15))
+X <- X[sample(1:5),]; X$var2[c(1,3)] = NA
+X
+```
+
+```{r ,dependson="subsetting"}
+X[,1]
+X[,"var1"]
+X[1:2,"var2"]
+```
+
+
+
+
+## Dealing with missing values
+
+
+```{r}
+X[(X$var2 > 8),]
+```
+
+```{r ,dependson="subsetting"}
+X[which(X$var2 > 8),]
+```
+
+
+
+
+## Sorting
+
+```{r ,dependson="subsetting"}
+sort(X$var1)
+sort(X$var1,decreasing=TRUE)
+sort(X$var2,na.last=TRUE)
+```
+
+
+---
+
+## Ordering
+
+```{r ,dependson="subsetting"}
+X[order(X$var1),]
+```
+
+---
+
+## Ordering
+
+```{r ,dependson="subsetting"}
+X[order(X$var1,X$var3),]
+```
+
+---
+
+## Ordering with plyr
+
+```{r ,dependson="subsetting"}
+library(plyr)
+arrange(X,var1)  #data fran and column 
+arrange(X,desc(var1))
+```
+
+
+---
+
+## Adding rows and columns
+
+```{r,dependson="subsetting"}
+X$var4 <- rnorm(5)  #new column 
+X
+```
+
+
+---
+
+## Adding rows and columns
+
+```{r,dependson="subsetting"}
+Y <- cbind(X,rnorm(5))  #column bind 
+Y
+```
+
+
+```{r,dependson="subsetting", eval=F}
+Y <- rbind(X,rnorm(6))  #row bind 
+Y
+```
+
+---
+
+working pipelines 
+
+### read the data 
+```{r}
+restData <- read.csv("restaurants.csv")
+```
+
+## Look at a bit of the data
+
+```{r ,dependson="getData"}
+head(restData,n=3)
+```
+
+```{r}
+tail(restData,n=3)
+```
+## Make summary
+
+```{r ,dependson="getData"}
+summary(restData)
+```
+
+
+
+## More in depth information
+
+```{r ,dependson="getData"}
+str(restData)
+```
+
+
+---
+
+## Quantiles of quantitative variables
+
+```{r ,dependson="getData"}
+quantile(restData$councilDistrict,na.rm=TRUE)
+quantile(restData$councilDistrict,probs=c(0.5,0.75,0.9))
+```
+
+---
+
+## Make table
+
+```{r ,dependson="getData"}
+table(restData$zipCode,useNA="ifany")
+```
+
+---
+
+## Make table
+
+```{r ,dependson="getData"}
+table(restData$councilDistrict,restData$zipCode)
+```
+
+---
+
+## Check for missing values
+
+```{r ,dependson="getData"}
+sum(is.na(restData$councilDistrict))
+any(is.na(restData$councilDistrict))
+all(restData$zipCode > 0)
+```
+
+
+---
+
+## Row and column sums
+
+```{r,dependson="getData"}
+colSums(is.na(restData))
+all(colSums(is.na(restData))==0)
+```
+
+
+---
+
+## Values with specific characteristics
+
+```{r,dependson="getData"}
+table(restData$zipCode %in% c("21212"))
+table(restData$zipCode %in% c("21212","21213"))
+
+```
+
+
+---
+
+## Values with specific characteristics
+
+
+```{r,dependson="getData"}
+restData[restData$zipCode %in% c("21212","21213"),]
+```
+
+
+---
+
+```{r adm}
+data(UCBAdmissions)
+DF = as.data.frame(UCBAdmissions)
+summary(DF)
+```
+
+
+---
+
+## Cross tabs
+
+xtab( the vaiable i want to disply in the table, breaked down into diffrent variables    )
+```{r ,dependson="adm"}
+xt <- xtabs(Freq ~ Gender + Admit, data=DF)
+xt
+```
+
+
+---
+
+## Flat tables
+
+```{r wb}
+warpbreaks$replicate <- rep(1:9, len = 54)
+xt = xtabs(breaks ~.,data=warpbreaks)
+xt
+
+```
+
+
+---
+
+## Flat tables on the cross tables 
+
+```{r ,dependson="wb"}
+ftable(xt)
+```
+
+
+---
+
+## Size of a data set
+
+```{r}
+fakeData = rnorm(1e5)
+object.size(fakeData)
+print(object.size(fakeData),units="Mb")
+```
+
+
+----
+
+## Creating sequences
+
+_Sometimes you need an index for your data set_
+
+```{r}
+s1 <- seq(1,10,by=2) ; s1
+s2 <- seq(1,10,length=3); s2
+x <- c(1,3,8,25,100); seq(along = x)
+```
+
+## Subsetting variables
+where is another vairable comes from 
+
+```{r,dependson="getData"}
+restData$nearMe = restData$neighborhood %in% c("Roland Park", "Homeland")
+table(restData$nearMe)
+```
+
+
+
+## Creating binary variables
+
+```{r,dependson="getData"}
+restData$zipWrong = ifelse(restData$zipCode < 0, TRUE, FALSE)
+table(restData$zipWrong,restData$zipCode < 0)
+```
+
+
+---
+
+## Creating categorical variables out of quantitaive variables 
+
+```{r,dependson="getData"}
+restData$zipGroups = cut(restData$zipCode,breaks=quantile(restData$zipCode))
+table(restData$zipGroups)
+table(restData$zipGroups,restData$zipCode)
+```
+
+
+---
+
+## Easier cutting
+
+```{r,dependson="getData"}
+library(Hmisc)
+restData$zipGroups = cut2(restData$zipCode,g=4)
+table(restData$zipGroups)
+```
+
+---
+
+## Creating factor variables from quantitaive variables
+
+```{r}
+restData$zcf <- factor(restData$zipCode)
+restData$zcf[1:10]
+class(restData$zcf)
+```
+
+
+---
+
+## Levels of factor variables
+
+```{r}
+yesno <- sample(c("yes","no"),size=10,replace=TRUE) #dummy factor
+yesnofac = factor(yesno,levels=c("yes","no")) #turn into factor use levels to order them 
+relevel(yesnofac,ref="no") #re level
+as.numeric(yesnofac) #into numeric 
+```
+
+---
+
+## Cutting produces factor variables
+
+
+```{r,dependson="getData"}
+library(Hmisc)
+restData$zipGroups = cut2(restData$zipCode,g=4)
+table(restData$zipGroups)
+```
+
+
+---
+
+## Using the mutate function
+
+```{r,dependson="getData"}
+library(Hmisc); library(plyr)
+restData2 = mutate(restData,zipGroups=cut2(zipCode,g=4)) #new data frame and mutate the old and add new variavle zipcode 
+table(restData2$zipGroups)
+```
+
+
+---
+
+## Common transforms
+
+* `abs(x)` absolute value
+* `sqrt(x)` square root
+* `ceiling(x)` ceiling(3.475) is 4
+* `floor(x)` floor(3.475) is 3
+* `round(x,digits=n)` round(3.475,digits=2) is 3.48
+* `signif(x,digits=n)` signif(3.475,digits=2) is 3.5
+* `cos(x), sin(x)` etc.
+* `log(x)` natural logarithm
+* `log2(x)`, `log10(x)` other common logs #with exploding data or data with outliers 
+* `exp(x)` exponentiating x
+
+-----
+
+
+#tidy data 
+
+1. Each variable forms a column
+2. Each observation forms a row
+3. Each table/file stores data about one kind of observation (e.g. people/hospitals).
+
+
+
+## Start with reshaping
+
+```{r reshape2}
+library(reshape2)
+head(mtcars)
+```
+
+
+---
+
+## Melting data frames
+
+```{r mtcars,dependson="reshape2"}
+mtcars$carname <- rownames(mtcars)
+carMelt <- melt(mtcars,id=c("carname","gear","cyl"),measure.vars=c("mpg","hp")) #pass intro melt and 
+#tell the function which are ID and which are measure 
+head(carMelt,n=3)
+
+```
+```{r}
+tail(carMelt,n=3)
+```
+
+---
+
+## Casting data frames
+
+```{r ,dependson="mtcars"}
+cylData <- dcast(carMelt, cyl ~ variable) # it's like group by with count group by cyl for columns in variable 
+cylData
+```
+```{r}
+
+cylData <- dcast(carMelt, cyl ~ variable,mean) # it's like group by with mean group by cyl for columns in variable 
+cylData
+```
+
+---
+
+## Averaging values
+
+```{r}
+head(InsectSprays)
+
+```
+```{r}
+tapply(InsectSprays$count,InsectSprays$spray,sum) #apply along the spray type the fuction sum for the count 
+```
+
+---
+
+## Another way - split
+
+```{r spIns}
+spIns =  split(InsectSprays$count,InsectSprays$spray)  #list the vairable for each one 
+spIns
+```
+
+---
+
+## Another way - apply
+
+```{r sprCount,dependson="spIns"}
+sprCount = lapply(spIns,sum) #apply across the lists 
+sprCount
+```
+
+---
+
+## Another way - combine
+
+```{r ,dependson="sprCount"}
+unlist(sprCount)
+
+```
+```{r}
+sapply(spIns,sum) # apply and the unlist 
+```
+
+---
+
+## Another way - plyr package easier 
+
+```{r}
+library(reshape2)
+ddply(InsectSprays,.(spray),summarize,sum=sum(count)) #sum the count for the diffrent spray over data frame = InsectSprays
+```
+
+
+---
+
+## Creating a new variable
+
+```{r,dependson="sprCount"}
+spraySums <- ddply(InsectSprays,.(spray),summarize,sum=ave(count,FUN=sum)) #not grouped by added for each a and each b and so on 
+dim(spraySums)
+head(spraySums)
+```
+
+
+
+```{r}
+library(dplyr)
+```
+
+
+# `select`
+
+```{r}
+chicago <- readRDS("chicago.rds")
+dim(chicago)
+head(select(chicago, 1:5))
+```
+
+
+# `select`
+
+```{r}
+names(chicago)[1:3]
+head(select(chicago, city:dptp)) #select usuing the name not the indices 
+```
+
+# `select`
+
+In dplyr you can do all but this columns 
+
+```{r}
+head(select(chicago, -(city:dptp))) 
+```
+
+Equivalent base R without the dpylyr 
+
+```{r}
+names = names(chicago)
+i<- match("city",names) #the index for the first one 
+j<- match("dptp", names) # the index for the second one 
+head(chicago[, -(i:j)])
+```
+
+
+
+# `filter`
+
+```{r}
+chic.f <- filter(chicago, pm25tmean2 > 30)
+head(select(chic.f, 1:3, pm25tmean2), 10)
+```
+
+# `filter`
+
+```{r}
+chic.f <- filter(chicago, pm25tmean2 > 30 & tmpd > 80)
+head(select(chic.f, 1:3, pm25tmean2, tmpd), 10)
+```
+
+
+# `arrange`
+
+Reordering rows of a data frame (while preserving corresponding order
+of other columns) is normally a pain to do in R.
+
+```{r}
+chicago <- arrange(chicago, date)
+head(select(chicago, date, pm25tmean2), 3)
+tail(select(chicago, date, pm25tmean2), 3)
+```
+
+# `arrange`
+
+Columns can be arranged in descending order too.
+
+```{r}
+chicago <- arrange(chicago, desc(date))
+head(select(chicago, date, pm25tmean2), 3)
+tail(select(chicago, date, pm25tmean2), 3)
+```
+
+
+# `rename`
+
+Renaming a variable in a data frame in R is surprising hard to do!
+
+```{r,tidy=FALSE}
+head(chicago[, 1:5], 3)
+chicago <- rename(chicago, dewpoint = dptp, 
+                  pm25 = pm25tmean2)
+head(chicago[, 1:5], 3)
+```
+
+
+# `mutate`
+transform or creat new variable 
+
+```{r, tidy=FALSE}
+chicago <- mutate(chicago, 
+                  pm25detrend=pm25-mean(pm25, na.rm=TRUE)) #when - mean >>> center the variables
+head(select(chicago, pm25, pm25detrend))
+```
+
+# `group_by`
+
+Generating summary statistics by stratum
+
+```{r, tidy=FALSE}
+chicago <- mutate(chicago, 
+                  tempcat = factor(1 * (tmpd > 80), #creatfactor variable out of quantataive variable 
+                                   labels = c("cold", "hot")))
+hotcold <- group_by(chicago, tempcat)
+summarize(hotcold, pm25 = mean(pm25, na.rm = TRUE), 
+          o3 = max(o3tmean2), 
+          no2 = median(no2tmean2))
+```
+
+
+# `group_by`
+
+Generating summary statistics by stratum
+
+```{r, tidy=FALSE}
+chicago <- mutate(chicago, 
+                  year = as.POSIXlt(date)$year + 1900) #year variable 
+years <- group_by(chicago, year)  #group by year
+summarize(years, pm25 = mean(pm25, na.rm = TRUE),  
+          o3 = max(o3tmean2, na.rm = TRUE), 
+          no2 = median(no2tmean2, na.rm = TRUE))
+```
+
+```{r,echo=FALSE}
+chicago$year <- NULL  ## Can't use mutate to create an existing variable
+```
+
+
+# `%>%` chain diffrent operator together 
+
+```{r,tidy=FALSE,eval=FALSE}
+chicago %>% mutate(month = as.POSIXlt(date)$mon + 1) #creat month vairable 
+	%>% group_by(month) #group them 
+	%>% summarize(pm25 = mean(pm25, na.rm = TRUE),#summarize
+          o3 = max(o3tmean2, na.rm = TRUE), 
+          no2 = median(no2tmean2, na.rm = TRUE))
+```
+
+```{r,echo=FALSE}
+chicago %>% mutate(month = as.POSIXlt(date)$mon + 1) %>% group_by(month) %>% 
+summarize(pm25 = mean(pm25, na.rm = TRUE), o3 = max(o3tmean2, na.rm = TRUE), no2 = median(no2tmean2, na.rm = TRUE))
+
+```
+
+----
+
+
+
+
+```{r reviewDownload, cache=TRUE}
+reviews = read.csv("reviews.csv"); solutions <- read.csv("solutions.csv")
+```
+
+```{r}
+head(reviews,2)
+```
+
+```{r}
+head(solutions,2)
+```
+
+```{r}
+names(reviews)
+names(solutions)
+```
+
+
+
+## Merging data - merge()
+
+* Merges data frames
+* Important parameters: _x_,_y_,_by_,_by.x_,_by.y_,_all_
+
+---
+
+## Merging data - merge()
+
+```{r, dependson="reviewDownload"}
+mergedData = merge(reviews,solutions,by.x="solution_id",by.y="id",all=TRUE)
+head(mergedData)
+```
+
+---
+
+## Default - merge all common column names
+
+```{r, dependson="reviewDownload"}
+intersect(names(solutions),names(reviews))
+mergedData2 = merge(reviews,solutions,all=TRUE) #with out telling it how to merge will look to names and try to merge by them 
+
+head(mergedData2) 
+```
+
+---
+
+## Using join in the plyr package  only merge on comment names so not very usefull
+
+_Faster, but less full featured - defaults to left join, see help file for more_
+```{r }
+df1 = data.frame(id=sample(1:10),x=rnorm(10))
+df2 = data.frame(id=sample(1:10),y=rnorm(10))
+arrange(join(df1,df2),id)
+```
+
+
+---
+
+## If you have multiple data frames with comment ID will be no problem
+
+```{r}
+df1 = data.frame(id=sample(1:10),x=rnorm(10))
+df2 = data.frame(id=sample(1:10),y=rnorm(10))
+df3 = data.frame(id=sample(1:10),z=rnorm(10))
+dfList = list(df1,df2,df3)
+join_all(dfList) #with comment id 
+```
+
+---
+
+
+```{r getData}
+cameraData <- read.csv("cameras.csv")
+names(cameraData)
+```
+
+```{r}
+tolower(names(cameraData))
+```
+
+
+## Fixing character vectors - strsplit()
+
+* Good for automatically splitting variable names
+* Important parameters: _x_, _split_
+
+```{r splitNames,dependson="getData"}
+splitNames = strsplit(names(cameraData),"\\.")
+splitNames
+splitNames[[5]]
+splitNames[[6]]
+```
+just take the side witn no mumber 
+
+---
+
+## Quick aside - lists
+
+```{r}
+mylist <- list(letters = c("A", "b", "c"), numbers = 1:3, matrix(1:25, ncol = 5))
+head(mylist)
+```
+---
+
+## Quick aside - lists
+
+```{r}
+mylist[1]
+mylist$letters
+mylist[[1]]
+```
+
+---
+
+## Fixing character vectors - sapply() remove all dots  and only get the first part of the value name 
+
+* Applies a function to each element in a vector or list
+* Important parameters: _X_,_FUN_
+
+```{r,dependson="splitNames"}
+splitNames[[6]][1]  #location + 1 >> location
+firstElement <- function(i){i[1]} #make a funtion to do that take index >> i and get the frist value from it 
+sapply(splitNames,firstElement)  #s apply the function to all names that are aleardy splited 
+```
+```{r eval = F}
+#the full steps 
+splitNames = strsplit(names(cameraData),"\\.") #split the elemnts 
+firstElement <- function(i){i[1]} #creat the function 
+sapply(splitNames,firstElement) # apply the function
+```
+
+---
+
+## Peer review experiment data
+
+
+```{r}
+reviews <- read.csv("reviews.csv"); 
+head(reviews,2)
+```
+
+
+
+```{r}
+solutions <- read.csv("solutions.csv")
+head(solutions,2)
+```
+
+---
+
+## Fixing character vectors - sub()
+
+* Important parameters: _pattern_, _replacement_, _x_
+
+```{r, dependson="reviewDownload"}
+names(reviews)
+sub("_","",names(reviews),) #remove thing by replace with nothing 
+
+```
+
+---
+
+## Fixing character vectors - gsub()
+
+```{r, dependson="reviewDownload"}
+testName <- "this_is_a_test"
+sub("_","",testName)
+gsub("_","",testName)  #the all in the sentence not all the first 
+```
+
+---
+
+## Finding values - grep(),grepl()
+
+```{r,dependson="getData"}
+grep("Alameda",cameraData$intersection)  #search for 
+table(grepl("Alameda",cameraData$intersection)) #subset with it into true and false and table it 
+cameraData2 <- cameraData[!grepl("Alameda",cameraData$intersection),] #subset with it
+cameraData2
+``` 
+
+---
+
+## More on grep()
+
+```{r,dependson="getData"}
+grep("Alameda",cameraData$intersection,value=TRUE) #will return the value not the index 
+grep("JeffStreet",cameraData$intersection)
+length(grep("JeffStreet",cameraData$intersection))
+```
+
+---
+
+## More useful string functions
+
+```{r,dependson="getData"}
+library(stringr)
+nchar("Jeffrey Leek") #char in string 
+substr("Jeffrey Leek",1,7) #take part of it 
+paste("Jeffrey","Leek") #paste or concatinate 
+```
+
+---
+
+## More useful string functions
+
+```{r,dependson="getData"}
+paste0("Jeffrey","Leek") #with no space in in betweem
+str_trim("Jeff      ") #remove all the spaces in the end 
+```
+
+---
+
+## Important points about text in data sets
+
+* Names of variables should be 
+  * All lower case when possible
+  * Descriptive (Diagnosis versus Dx)
+  * Not duplicated
+  * Not have underscores or dots or white spaces
+* Variables with character values
+  * Should usually be made into factor variables (depends on application)
+  * Should be descriptive (use TRUE/FALSE instead of 0/1 and Male/Female versus 0/1 or M/F)
+
+----
+
+
+
+## Starting simple
+
+```{r}
+d1 = date()
+d1
+class(d1)
+```
+
+---
+
+## Date class
+
+```{r sysDate}
+d2 = Sys.Date()
+d2
+class(d2)
+```
+
+---
+
+## Formatting dates
+
+`%d` = day as number (0-31), `%a` = abbreviated weekday,`%A` = unabbreviated weekday, `%m` = month (00-12), `%b` = abbreviated month,
+`%B` = unabbrevidated month, `%y` = 2 digit year, `%Y` = four digit year
+
+```{r ,dependson="sysDate"}
+format(d2,"%a %b %d")
+```
+
+---
+
+## Creating dates
+
+```{r}
+x = c("1jan1960", "2jan1960", "31mar1960", "30jul1960"); z = as.Date(x, "%d%b%Y")
+z
+z[1] - z[2]
+as.numeric(z[1]-z[2])
+```
+
+---
+
+## Converting to Julian 
+
+```{r,dependson="sysDate"}
+weekdays(d2)
+months(d2)
+julian(d2) #type of dates
+```
+
+---
+
+## Lubridate 
+
+```{r lub, eval=F}
+library(lubridate); 
+ymd("20140108") #year > month > day 
+mdy("08/04/2013") #month > day > year 
+dmy("03-04-2013") #day > month > year 
+```
+---
+
+## Dealing with times
+
+```{r ,dependson="lub", eval=F}
+ymd_hms("2011-08-03 10:15:03")
+ymd_hms("2011-08-03 10:15:03",tz="Pacific/Auckland")
+?Sys.timezone
+```
+
+---
+
+## Some functions have slightly different syntax
+
+```{r, dependson="lub", eval=F}
+x = dmy(c("1jan2013", "2jan2013", "31mar2013", "30jul2013"))
+wday(x[1])
+wday(x[1],label=TRUE)
+```
+
+
+
