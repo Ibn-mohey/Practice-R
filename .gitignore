@@ -10,3 +10,5 @@
 *.rds
 *.zip
 *.txt
+*.gz
+*.Rda

@@ -1,0 +1,472 @@
+---
+title: "train"
+author: "mohey"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+* Principle 1: Show comparisons
+
+  - Evidence for a hypothesis is always *relative* to another competing
+    hypothesis.
+
+  - Always ask "Compared to What?"
+  
+* Principle 2: Show causality, mechanism, explanation, systematic structure 
+  - What is your causal framework for thinking about a question?
+
+* Principle 3: Show multivariate data
+  - Multivariate = more than 2 variables 
+  - The real world is multivariate
+  - Need to "escape flatland"
+
+* Principle 4: Integration of evidence
+  - Completely integrate words, numbers, images, diagrams
+
+  - Data graphics should make use of many modes of data presentation 
+
+  - Don't let the tool drive the analysis
+  
+ 
+* Principle 5: Describe and document the evidence with appropriate
+  labels, scales, sources, etc.
+
+  - A data graphic should tell a complete story that is credible 
+
+* Principle 6: Content is king
+
+  - Analytical presentations ultimately stand or fall depending on the
+    quality, relevance, and integrity of their content
+
+## Summary
+
+* Principle 1: Show comparisons
+* Principle 2: Show causality, mechanism, explanation
+* Principle 3: Show multivariate data
+* Principle 4: Integrate multiple modes of evidence
+* Principle 5: Describe and document the evidence
+* Principle 6: Content is king
+
+---
+
+## Why do we use graphs in data analysis? 
+
+* To understand data properties
+* To find patterns in data
+* To suggest modeling strategies (linear or non linear model)
+* To "debug" analyses
+* To communicate results
+
+
+## Characteristics of exploratory graphs
+
+* They are made quickly
+* A large number are made
+* The goal is for personal understanding
+* Axes/legends are generally cleaned up (later)
+* Color/size are primarily used for information
+
+
+
+## Simple Summaries of Data
+
+
+One dimension
+
+* Five-number summary `summary(dataframe)`
+* Boxplots  `boxplot(dataframe$column , col = "color")`
+* Histograms `hist(dataframe$column , col = "color")`
+* Density plot
+* Barplot
+
+Two dimensions
+
+* Multiple/overlayed 1-D plots (Lattice/ggplot2)  `par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))`
+* Scatterplots `with(dataframe, plot(col1, col2))`
+* Smooth scatterplots
+
+$> 2$ dimensions
+
+* Overlayed/multiple 2-D plots; coplots organize them 
+* Use color, size, shape to add dimensions
+* Spinning plots
+* Actual 3-D plots (not that useful)
+
+---
+
+## Summary
+
+* Exploratory plots are "quick and dirty"
+
+* Let you summarize the data (usually graphically) and highlight any broad features
+
+* Explore basic questions and hypotheses (and perhaps rule them out)
+
+* Suggest modeling strategies for the "next step"
+
+---
+
+## Plotting Systems
+
+
+### The Base Plotting System
+
+* "Artist's palette" model
+* Start with blank canvas and build up from there
+* Start with plot function (or similar)
+
+* Use annotation functions to add/modify (`text`, `lines`, `points`,
+  `axis`)
+
+#### The Base Plotting System
+
+* Convenient, mirrors how we think of building plots and analyzing data
+
+* Can’t go back once plot has started (i.e. to adjust margins); need
+  to plan in advance
+
+* Difficult to "translate" to others once a new plot has been created
+  (no graphical "language")
+
+* Plot is just a series of R commands
+
+
+### The Lattice System
+
+* Plots are created with a single function call (`xyplot`, `bwplot`,
+etc.)
+
+* Most useful for conditioning types of plots: Looking at how y changes with x across levels of z
+
+* Things like margins/spacing set automatically because entire plot is
+  specified at once
+
+*  Good for puttng many many plots on a screen
+
+#### The Lattice System
+
+* Sometimes awkward to specify an entire plot in a single function call
+
+* Annotation in plot is not especially intuitive
+
+* Use of panel functions and subscripts difficult to wield and
+  requires intense preparation
+
+* Cannot "add" to the plot once it is created
+
+
+### The ggplot2 System
+
+* Splits the difference between base and lattice in a number of ways
+
+* Automatically deals with spacings, text, titles but also allows you
+  to annotate by "adding" to a plot
+
+* Superficial similarity to lattice but generally easier/more
+  intuitive to use
+
+* Default mode makes many choices for you (but you can still customize
+  to your heart's desire)
+  
+  
+### Summary
+
+* Base: "artist's palette" model
+
+* Lattice: Entire plot specified by one function; conditioning
+
+* ggplot2: Mixes elements of Base and Lattice
+
+
+The core plotting and graphics engine in R is encapsulated in the
+following packages:
+
+- *graphics*: contains plotting functions for the "base" graphing
+   systems, including `plot`, `hist`, `boxplot` and many others.
+
+- *grDevices*: contains all the code implementing the various graphics
+   devices, including X11, PDF, PostScript, PNG, etc.
+
+The lattice plotting system is implemented using the following packages:
+
+- *lattice*: contains code for producing Trellis graphics, which are
+   independent of the “base” graphics system; includes functions like
+   `xyplot`, `bwplot`, `levelplot`
+
+- *grid*: implements a different graphing system independent of the
+   “base” system; the *lattice* package builds on top of *grid*; we
+   seldom call functions from the *grid* package directly
+
+
+## The Process of Making a Plot
+
+- What graphics system will you use: base, lattice, or ggplot2? These
+  generally cannot be mixed.
+
+- Base graphics are usually constructed piecemeal, with each aspect of
+  the plot handled separately through a series of function calls; this
+  is often conceptually simpler and allows plotting to mirror the
+  thought process
+
+- Lattice graphics are usually created in a single function call, so
+  all of the graphics parameters have to specified at once; specifying
+  everything at once allows R to automatically calculate the necessary
+  spacings and font sizes.
+
+- ggplot2 combines concepts from both base and lattice graphics but
+  uses an independent implementation
+
+
+## Base Graphics
+
+Base graphics are used most commonly and are a very powerful system for creating 2-D graphics.
+
+- There are two *phases* to creating a base plot
+  - Initializing a new plot
+  - Annotating (adding to) an existing plot
+
+- Calling `plot(x, y)` or `hist(x)` will launch a graphics device (if
+  one is not already open) and draw a new plot on the device
+
+- If the arguments to `plot` are not of some special class, then the
+  _default_ method for `plot` is called; this function has _many_
+  arguments, letting you set the title, x axis label, y axis label,
+  etc.
+
+- The base graphics system has _many_ parameters that can set and
+  tweaked; these parameters are documented in `?par`; it wouldn’t hurt
+  to try to memorize this help page!
+
+### Some Important Base Graphics Parameters
+
+Many base plotting functions share a set of parameters. Here are a few
+key ones:
+
+- `pch`: the plotting symbol (default is open circle)
+
+- `lty`: the line type (default is solid line), can be dashed, dotted, etc.
+
+- `lwd`: the line width, specified as an integer multiple
+
+- `col`: the plotting color, specified as a number, string, or hex
+  code; the `colors()` function gives you a vector of colors by name
+
+- `xlab`: character string for the x-axis label
+
+- `ylab`: character string for the y-axis label
+
+The `par()` function is used to specify *global* graphics parameters
+that affect all plots in an R session. These parameters can be
+overridden when specified as arguments to specific plotting functions.
+
+- `las`: the orientation of the axis labels on the plot
+- `bg`: the background color
+- `mar`: the margin size
+- `oma`: the outer margin size (default is 0 for all sides)
+- `mfrow`: number of plots per row, column (plots are filled row-wise) 
+- `mfcol`: number of plots per row, column (plots are filled column-wise)
+
+
+Default values for global graphics parameters
+
+```{r}
+par("lty")
+par("col")
+par("pch")
+
+par("bg")
+par("mar")
+par("mfrow")
+```
+
+
+
+
+
+## Base Plotting Functions
+
+- `plot`: make a scatterplot, or other type of plot depending on the
+  class of the object being plotted
+
+- `lines`: add lines to a plot, given a vector x values and a
+  corresponding vector of y values (or a 2-column matrix); this
+  function just connects the dots
+
+- `points`: add points to a plot
+- `text`: add text labels to a plot using specified x, y coordinates
+- `title`: add annotations to x, y axis labels, title, subtitle, outer margin 
+- `mtext`: add arbitrary text to the margins (inner or outer) of the plot 
+- `axis`: adding axis ticks/labels
+
+
+```{r}
+example(points)
+```
+
+
+## The Lattice Plotting System
+
+The lattice plotting system is implemented using the following packages:
+
+- *lattice*: contains code for producing Trellis graphics, which are
+   independent of the “base” graphics system; includes functions like
+   `xyplot`, `bwplot`, `levelplot`
+
+- *grid*: implements a different graphing system independent of the
+   “base” system; the *lattice* package builds on top of *grid*
+   - We seldom call functions from the *grid* package directly
+
+- The lattice plotting system does not have a "two-phase" aspect with
+  separate plotting and annotation like in base plotting
+
+- All plotting/annotation is done at once with a single function call
+
+
+### Lattice Functions
+
+- `xyplot`: this is the main function for creating scatterplots 
+- `bwplot`: box-and-whiskers plots (“boxplots”)
+- `histogram`: histograms
+- `stripplot`: like a boxplot but with actual points 
+- `dotplot`: plot dots on "violin strings"
+- `splom`: scatterplot matrix; like `pairs` in base plotting system 
+- `levelplot`, `contourplot`: for plotting "image" data
+
+
+Lattice functions generally take a formula for their first argument, usually of the form
+
+```r
+xyplot(y ~ x | f * g, data)
+```
+
+- We use the *formula notation* here, hence the `~`.
+
+- On the left of the ~ is the y-axis variable, on the right is the
+  x-axis variable
+
+- f and g are _conditioning variables_ — they are optional
+  - the * indicates an interaction between two variables
+
+- The second argument is the data frame or list from which the
+  variables in the formula should be looked up
+
+  - If no data frame or list is passed, then the parent frame is used.
+
+- If no other arguments are passed, there are defaults that can be used.
+
+
+### Lattice Panel Functions
+
+* Lattice functions have a **panel function** which controls what
+  happens inside each panel of the plot.
+
+* The *lattice* package comes with default panel functions, but you
+  can supply your own if you want to customize what happens in each
+  panel
+
+* Panel functions receive the x/y coordinates of the data points
+  in their panel (along with any optional arguments)
+  
+  
+  
+### Summary
+
+* Lattice plots are constructed with a single function call to a core
+  lattice function (e.g. `xyplot`)
+
+* Aspects like margins and spacing are automatically handled and
+  defaults are usually sufficient
+
+* The lattice system is ideal for creating conditioning plots where
+  you examine the same kind of plot under many different conditions
+
+* Panel functions can be specified/customized to modify what is
+  plotted in each of the plot panels
+  
+  
+  
+### Summary of qplot()
+
+- The `qplot()` function is the analog to `plot()` but with many built-in features
+- Syntax somewhere in between base/lattice
+- Produces very nice graphics, essentially publication ready (if you like the design)
+- Difficult to go against the grain/customize (don’t bother; use full ggplot2 power in that case)
+
+
+
+### Basic Components of a ggplot2 Plot
+- A _data frame_
+- _aesthetic mappings_: how data are mapped to color, size 
+- _geoms_: geometric objects like points, lines, shapes. 
+- _facets_: for conditional plots. 
+- _stats_: statistical transformations like binning, quantiles, smoothing. 
+- _scales_: what scale an aesthetic map uses (example: male = red, female = blue). 
+- _coordinate system_ 
+
+
+
+### Annotation for ggplot2 
+- Labels: `xlab()`, `ylab()`, `labs()`, `ggtitle()`
+- Each of the “geom” functions has options to modify 
+- For things that only make sense globally, use `theme()` 
+  - Example: `theme(legend.position = "none")` 
+- Two standard appearance themes are included
+  - `theme_gray()`: The default theme (gray background)
+  - `theme_bw()`: More stark/plain 
+
+
+## More Complex Example
+- How does the relationship between PM$_{2.5}$ and nocturnal symptoms vary by BMI and NO$_2$?
+- Unlike our previous BMI variable, NO$_2$ is continuous
+- We need to make NO$_2$ categorical so we can condition on it in the plotting
+- Use the `cut()` function for this
+
+## Making NO$_2$ Tertiles
+
+```{r}
+## Calculate the tertiles of the data
+cutpoints <- quantile(maacs$logno2_new, seq(0, 1, length = 4), na.rm = TRUE) #where is the data 
+cutpoints
+```
+
+```{r}
+## Cut the data at the tertiles and create a new factor variable
+maacs$no2tert <- cut(maacs$logno2_new, cutpoints) #cut them using the cut points 
+maacs$no2tert
+
+```
+
+
+```{r}
+## See the levels of the newly created factor variable
+levels(maacs$no2tert) #see the final levels 
+```
+
+---
+
+## Final Plot
+
+```{r, echo=FALSE, fig.width=9, fig.height=5}
+## Setup ggplot with data frame
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+
+## Add layers
+g + geom_point(alpha = 1/3) + #the point 
+  facet_wrap(bmicat ~ no2tert, nrow = 2, ncol = 4) + #facet with wheight to make panels
+  geom_smooth(method="lm", se=FALSE, col="steelblue") + #added smother to each panel 
+  theme_bw(base_family = "Avenir", base_size = 10) + #change the theme and font
+  labs(x = expression("log " * PM[2.5])) + #labels x
+  labs(y = "Nocturnal Symptoms") + #labels y 
+  labs(title = "MAACS Cohort") #the title
+```
+---
+
+## Summary
+- ggplot2 is very powerful and flexible if you learn the “grammar” and the various elements that can be tuned/modified
+- Many more types of plots can be made; explore and mess around with the package (references mentioned in Part 1 are useful)
+

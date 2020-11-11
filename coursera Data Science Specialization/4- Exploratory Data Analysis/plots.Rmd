@@ -1,0 +1,573 @@
+---
+title: "graphs"
+author: "mohey"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r readpm25data}
+pollution <- read.csv("data/avgpm25.csv", colClasses = c("numeric", "character", "factor", "numeric", "numeric"))
+head(pollution)
+```
+
+```{r}
+summary(pollution$pm25)
+```
+
+
+## Boxplot
+
+```{r}
+boxplot(pollution$pm25, col = "blue")
+```
+
+
+Overlaying Features 
+add line 
+```{r}
+boxplot(pollution$pm25, col = "blue")
+abline(h = 12)
+```
+
+
+### Multiple Boxplots
+
+```{r}
+boxplot(pm25 ~ region, data = pollution, col = "red")
+```
+
+### Simple Base Graphics: Boxplot
+
+```{r,fig.height=5}
+library(datasets)
+airquality <- transform(airquality, Month = factor(Month))
+boxplot(Ozone ~ Month, airquality, xlab = "Month", ylab = "Ozone (ppb)")
+```
+
+## Histogram
+
+```{r,fig.height=5}
+hist(pollution$pm25, col = "green")
+```
+
+
+and we can use a rug to plot all the points under the histogram 
+
+
+```{r,fig.height=5}
+hist(pollution$pm25, col = "green")
+rug(pollution$pm25)
+```
+
+change the bins and they call breaks 
+
+```{r,fig.height=5}
+hist(pollution$pm25, col = "green", breaks = 100)
+rug(pollution$pm25)
+```
+
+overlay features as line highlight the median
+
+```{r,fig.height=5}
+hist(pollution$pm25, col = "green")
+abline(v = 12, lwd = 2)
+abline(v = median(pollution$pm25), col = "magenta", lwd = 4)
+```
+
+### Multiple Histograms
+
+```{r,fig.width=8,fig.height=5}
+par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
+hist(subset(pollution, region == "east")$pm25, col = "green")
+hist(subset(pollution, region == "west")$pm25, col = "green")
+```
+
+the west tend to be lower on averege but with more extreme values 
+
+
+## Barplot
+
+graphical summry for categorical data 
+```{r}
+table(pollution$region) #it's like group by and count 
+```
+
+```{r}
+barplot(table(pollution$region), col = "wheat", main = "Number of Counties in Each Region")
+```
+
+the majorty are in the east 
+
+---
+
+
+
+### Simple Base Graphics: Histogram
+
+```{r,fig.height=5}
+library(datasets)
+hist(airquality$Ozone)  ## Draw a new plot
+```
+the defaults with no changes 
+
+
+---
+
+## Scatterplot
+
+```{r,fig.height=6}
+with(pollution, plot(latitude, pm25))
+abline(h = 12, lwd = 2, lty = 2)
+```
+no trend here it's just higer in the middle latitude 
+---
+
+### Scatterplot - Using Color
+
+```{r,fig.height=6}
+with(pollution, plot(latitude, pm25, col = region)) #added new variavles 
+abline(h = 12, lwd = 2, lty = 2)
+```
+
+---
+
+### Multiple Scatterplots
+
+```{r,fig.height=5.5,fig.width=12}
+par(mfrow = c(1, 2), mar = c(5, 4, 2, 1))
+with(subset(pollution, region == "west"), plot(latitude, pm25, main = "West"))
+with(subset(pollution, region == "east"), plot(latitude, pm25, main = "East"))
+```
+
+
+### Lattice Plot
+
+```{r,fig.height=4,fig.width=12}
+library(lattice)
+state <- data.frame(state.x77, region = state.region)
+xyplot(Life.Exp ~ Income | region, data = state, layout = c(4, 1))
+```
+
+
+### ggplot2 Plot
+
+```{r, message=FALSE,fig.height=5,fig.width=6}
+library(ggplot2)
+data(mpg)
+qplot(displ, hwy, data = mpg)
+```
+
+
+### Simple Base Graphics: Scatterplot
+
+```{r,fig.height=5}
+library(datasets)
+with(airquality, plot(Wind, Ozone))
+```
+
+
+with >>> plot 
+
+### Base Plot with Annotation
+
+```{r,fig.height=5}
+library(datasets)
+with(airquality, plot(Wind, Ozone))
+title(main = "Ozone and Wind in New York City")  ## Add a title
+```
+adding title 
+
+---
+
+```{r,fig.height=5}
+with(airquality, plot(Wind, Ozone, main = "Ozone and Wind in New York City"))
+with(subset(airquality, Month == 5), points(Wind, Ozone, col = "blue"))
+```
+
+here we but the title and didnt add it using main 
+
+and them draw the may with deffrent color with points fuction inside the new with 
+
+with > plot > with > points
+---
+
+```{r,fig.height=5}
+with(airquality, plot(Wind, Ozone, main = "Ozone and Wind in New York City", type = "n"))
+with(subset(airquality, Month == 5), points(Wind, Ozone, col = "blue"))
+with(subset(airquality, Month != 5), points(Wind, Ozone, col = "red"))
+legend("topright", pch = 1, col = c("blue", "red"), legend = c("May", "Other Months"))
+```
+
+type n just intailze the plot
+more sub set every one using plot or point with `with` each time 
+
+---
+
+### Base Plot with Regression Line
+
+```{r,fig.height=5}
+with(airquality, plot(Wind, Ozone, main = "Ozone and Wind in New York City", pch = 20))
+model <- lm(Ozone ~ Wind, airquality)
+abline(model, lwd = 2)
+```
+
+use model to make the line then add it with abline and lwd wiche is line width 
+---
+
+### Multiple Base Plots
+
+```{r,fig.height=5,fig.width=14}
+par(mfrow = c(1, 2))
+with(airquality, {
+	plot(Wind, Ozone, main = "Ozone and Wind")
+	plot(Solar.R, Ozone, main = "Ozone and Solar Radiation")
+})
+```
+
+first add the par mf row 
+call plot twice 
+---
+
+### Multiple Base Plots
+
+```{r,fig.height=4,fig.width=12}
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+with(airquality, {
+	plot(Wind, Ozone, main = "Ozone and Wind")
+	plot(Solar.R, Ozone, main = "Ozone and Solar Radiation")
+	plot(Temp, Ozone, main = "Ozone and Temperature")
+	mtext("Ozone and Weather in New York City", outer = TRUE)
+})
+```
+
+the outer margin is bigger then default
+m text add label to the all plots
+
+
+### Simple Lattice Plot
+
+```{r,fig.height=5}
+library(lattice)
+library(datasets)
+## Simple scatterplot
+xyplot(Ozone ~ Wind, data = airquality)
+```
+
+
+
+```{r,fig.width=12,fig.height=4}
+library(datasets)
+library(lattice)
+## Convert 'Month' to a factor variable
+airquality <- transform(airquality, Month = factor(Month)) 
+xyplot(Ozone ~ Wind | Month, data = airquality, layout = c(5, 1))
+```
+
+
+ozone vs wind by month
+
+
+
+### Lattice Panel Functions
+
+```{r,fig.height=4,fig.width=8}
+set.seed(10)
+x <- rnorm(100)
+f <- rep(0:1, each = 50)
+y <- x + f - f * x+ rnorm(100, sd = 0.5)
+f <- factor(f, labels = c("Group 1", "Group 2"))
+```
+
+```{r}
+xyplot(y ~ x | f, layout = c(2, 1))  ## Plot with 2 panels
+```
+---
+
+```{r,fig.height=4}
+## Custom panel function
+xyplot(y ~ x | f, panel = function(x, y, ...) {
+       panel.xyplot(x, y, ...)  ## First call the default panel function for 'xyplot'
+       panel.abline(h = median(y), lty = 2)  ## Add a horizontal line at the median
+})
+```
+
+---
+
+#### Lattice Panel Functions: Regression line
+
+```{r,fig.height=4}
+## Custom panel function
+xyplot(y ~ x | f, panel = function(x, y, ...) {
+               panel.xyplot(x, y, ...)  ## First call default panel function
+               panel.lmline(x, y, col = 2)  ## Overlay a simple linear regression line
+       })
+```
+
+
+### Many Panel Lattice Plot
+
+```{r,echo=FALSE,cache=TRUE,fig.width=12}
+library(lattice)
+env <- readRDS("data/maacs_env.rds")
+env <- transform(env, MxNum = factor(MxNum))
+xyplot(log2(airmus) ~ VisitNum | MxNum, data = env, strip = FALSE, pch = 20, xlab = "Visit Number", ylab = expression(Log[2] * " Airborne Mouse Allergen"), main = "Mouse Allergen and Asthma Cohort Study (Baltimore City)")
+```
+
+visit number vs Airbome mouse allergen by subject (person)
+
+
+
+```{r}
+library(ggplot2)
+str(mpg)
+```
+
+
+
+### ggplot2 “Hello, world!”
+```{r}
+qplot(displ, hwy, data = mpg)
+```
+x = displ , y = hwy, data = mpg
+
+
+
+```{r}
+qplot(displ, hwy, data = mpg, color = drv)
+
+```
+
+get to see groups of the data 
+color = the coloumn to group by 
+
+the f fron wheel drives tend to have the loweest displ but the highest milege 
+
+#### Facets for factors and group by it's like panels 
+
+
+split it by the diffrent drives not usuing one plot like the one before 
+```{r, fig.width=4.5}
+qplot(displ, hwy, data = mpg, facets = . ~ drv)
+```
+
+### Adding a geom that see over all trend
+
+```{r}
+qplot(displ, hwy, data = mpg, geom = c("point", "smooth"))
+
+```
+
+the smoth it's a blue line that goes across and 95 confidence intervals are in the gray shaded areas 
+---
+
+### ggplot2 
+
+
+by just specify one variable 
+```{r}
+qplot(hwy, data = mpg, fill = drv)
+
+```
+
+#### Facets for factors and group by it's like panels 
+
+```{r}
+qplot(hwy, data = mpg, facets = drv ~ ., binwidth = 2)
+```
+
+
+```{r}
+library(ggplot2)
+load("data/maacs (2).Rda")
+str(maacs)
+
+```
+
+
+
+## Histogram of eNO
+
+```{r}
+qplot(log(eno), data = maacs)
+```
+2 - 3 peaks 
+---
+
+## Histogram by Group
+
+```{r}
+qplot(log(eno), data = maacs, fill = mopos)
+```
+
+mouse positive variables 
+sentitize and non-sentitize 
+
+#### Density Smooth
+
+```{r, fig.width=4.5}
+qplot(log(eno), data = maacs, geom = "density")
+
+```
+
+seperate them by color 
+```{r}
+qplot(log(eno), data = maacs, geom = "density", color = mopos)
+```
+
+
+### Scatterplots: eNO vs. PM$_{2.5}$ to compare if it's related 
+
+```{r, fig.width=2.7}
+qplot(log(pm25), log(eno), data = maacs)
+qplot(log(pm25), log(eno), data = maacs, shape = mopos) #seprated by shape 
+qplot(log(pm25), log(eno), data = maacs, color = mopos)  #seperated by color 
+```
+
+
+---
+
+## Scatterplots: eNO vs. PM$_{2.5}$
+```{r}
+qplot(log(pm25), log(eno), data = maacs, color = mopos, 
+      geom = c("point", "smooth")) #rather then use low s we used linear model 
+```
+
+```{r}
+qplot(log(pm25), log(eno), data = maacs, color = mopos, 
+      geom = c("point", "smooth"), method = "lm") #rather then use low s we used linear model 
+```
+
+
+---
+
+## Scatterplots: eNO vs. PM$_{2.5}$
+
+```{r, fig.width=9}
+qplot(log(pm25), log(eno), data = maacs, geom = c("point", "smooth"), 
+      method = "lm", facets = . ~ mopos) #split out with facet not with color 
+```
+
+
+
+
+---
+```{r}
+library(ggplot2)
+load("data/maacs.Rda")
+str(maacs)
+
+```
+
+## Basic Plot
+
+```{r, fig.width=9}
+library(ggplot2)
+qplot(logpm25, NocturnalSympt, data = maacs, facets = . ~ bmicat, 
+      geom = c("point", "smooth"), method = "lm")
+```
+
+
+
+
+### Building Up in Layers
+
+```{r}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt)) #1 start with the data 
+summary(g)
+
+```
+
+```{r}
+print(g)
+```
+
+```{r}
+g + geom_point() #First Plot with Point Layer
+```
+
+
+```{r, fig.width=4.5}
+g + geom_point() + geom_smooth() #Adding More Layers: Smooth deffult
+g + geom_point() + geom_smooth(method = "lm") #not the deffult we use the linear model
+```
+
+
+```{r, fig.width=9}
+g + geom_point() + facet_grid(. ~ bmicat) + geom_smooth(method = "lm") # Adding More Layers: Facets
+```
+
+Modifying Aesthetics
+
+```{r, fig.width=4.5}
+g + geom_point(color = "steelblue", size = 4, alpha = 1/2) #add option to geom function #here it's assigned to static color 
+
+```
+```{r}
+g + geom_point(aes(color = bmicat), size = 4, alpha = 1/2) #color for deffernt normal white #here assigned to data variables
+```
+
+
+###lables ggplot2 
+
+```{r}
+g + geom_point(aes(color = bmicat)) + labs(title = "MAACS Cohort") + 
+  labs(x = expression("log " * PM[2.5]), y = "Nocturnal Symptoms")
+```
+
+
+
+### Customizing the Smooth
+
+```{r}
+g + geom_point(aes(color = bmicat), size = 2, alpha = 1/2) + 
+  geom_smooth(size = 4, linetype = 3, method = "lm", se = FALSE) #type = 3 doted #se = F turn of the convidence line 
+```
+
+---
+
+### Changing the Theme
+
+```{r}
+g + geom_point(aes(color = bmicat)) + theme_bw(base_family = "Times") #chenge theme
+```
+
+---
+
+## A Note about Axis Limits
+
+```{r, fig.width=4.5, fig.height=3}
+testdat <- data.frame(x = 1:100, y = rnorm(100))
+testdat[50,2] <- 100  ## Outlier!
+plot(testdat$x, testdat$y, type = "l", ylim = c(-3,3))
+```
+
+
+```{r}
+g <- ggplot(testdat, aes(x = x, y = y)) 
+g + geom_line() #add line 
+```
+
+---
+
+### Axis Limits
+
+```{r, fig.width=4.5}
+g + geom_line() + ylim(-3, 3) #add line + limit but 
+
+```
+but here i can see that the outlier is missed and i need it be there 
+
+```{r}
+g + geom_line() + coord_cartesian(ylim = c(-3, 3)) 
+```
+
+
+
+
+
+
+
