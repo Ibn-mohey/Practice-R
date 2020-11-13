@@ -569,5 +569,15 @@ g + geom_line() + coord_cartesian(ylim = c(-3, 3))
 
 
 
+## coloring the plots 
+
+
+
+
+
+
+
+
+
 
 

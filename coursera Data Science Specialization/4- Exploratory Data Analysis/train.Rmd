@@ -470,3 +470,119 @@ g + geom_point(alpha = 1/3) + #the point
 - ggplot2 is very powerful and flexible if you learn the “grammar” and the various elements that can be tuned/modified
 - Many more types of plots can be made; explore and mess around with the package (references mentioned in Part 1 are useful)
 
+
+
+
+## Plotting and Color
+- The default color schemes for most plots in R are horrendous
+  - I don’t have good taste and even I know that
+- Recently there have been developments to improve the handling/specifica1on of colors in plots/graphs/etc.
+- There are functions in R and in external packages that are very handy
+
+
+## Color U1li1es in R
+
+- The `grDevices` package has two functions 
+  - `colorRamp`
+  - `colorRampPalette`
+  
+- These functions take palettes of colors and help to interpolate between the colors
+
+- The function `colors()` lists the names of colors you can use in any plotting function
+
+```{r}
+colors()
+```
+
+
+
+## Color Palette Utilities in R
+
+- `colorRamp`: Take a palette of colors and return a function that takes valeus between 0 and 1, indicating the extremes of the color palette (e.g. see the 'gray' function)
+
+- `colorRampPalette`: Take a palette of colors and return a function that takes integer arguments and returns a vector of colors interpolating the palette (like `heat.colors` or `topo.colors`)
+
+
+
+```{r}
+pal <- colorRamp(c("red", "blue"))
+pal
+```
+
+```{r}
+pal(0) #red
+
+
+pal(1) #blue 
+
+pal(0.5) #half Blue half red
+```
+
+
+
+```{r}
+pal(seq(0, 1, len = 10))
+```
+
+
+
+## colorRampPalette
+
+```{r}
+pal <- colorRampPalette(c("red", "yellow"))
+pal
+```
+
+```{r}
+pal(2)
+
+pal(10)
+```
+
+---
+
+## RColorBrewer Package
+
+-  One package on CRAN that contains interes1ng/useful color palettes
+
+- There are 3 types of palettes
+  - Sequential #the data that are orderd numicical data 
+  - Diverging #divation from mean or like that 
+  - Qualitative #not ordered 
+  
+- Palette informa1on can be used in conjunction with the `colorRamp()` and `colorRampPalette()`
+
+
+
+```{r}
+library(RColorBrewer)
+```
+
+```{r}
+cols <- brewer.pal(3, "BuGn")
+
+cols
+
+pal <- colorRampPalette(cols)
+
+image(volcano, col = pal(20))
+```
+
+
+## Some other plotting notes
+
+- The `rgb` function can be used to produce any color via red, green, blue proportions
+- Color transparency can be added via the `alpha` parameter to `rgb`
+- The `colorspace` package can be used for a different control over colors
+
+
+## Scatterplot with transparency
+so it doesnt overlap 
+`smoothScatter(x,y)` > density 
+
+## Summary
+
+- Careful use of colors in plots/maps/etc. can make it easier for the reader to get what you're trying to say (why make it harder?)
+- The `RColorBrewer` package is an R package that provides color palettes for sequential, categorical, and diverging data
+- The `colorRamp` and `colorRampPalette` functions can be used in conjunction with color palettes to connect data to colors
+- Transparency can sometimes be used to clarify plots with many points
