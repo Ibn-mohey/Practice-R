@@ -1,0 +1,169 @@
+---
+title: 'Peer-graded Assignment: Course Project 2'
+author: "Abd-elrhman mohey"
+date: "11/15/2020"
+output: html_document
+---
+Health and Economic Impact of Weather Events in the US
+======================================================
+
+Storms and other severe weather events can cause both public health and economic
+problems for communities and municipalities. Many severe events can result in
+fatalities, injuries, and property damage, and preventing such outcomes to the extent
+possible is a key concern.
+
+This project involves exploring the U.S. National Oceanic and Atmospheric
+Administration's (NOAA) storm database. This database tracks characteristics of major
+storms and weather events in the United States, including when and where they occur, as
+well as estimates of any fatalities, injuries, and property damage.
+
+Synopsis: 
+==========
+Analysis of weather data (Storms and other severe weather events)
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration’s (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+
+Data Processing
+===============
+
+[Storm Events Database](http://www.ncdc.noaa.gov/stormevents/ftp.jsp), provided by
+[National Climatic Data Center](http://www.ncdc.noaa.gov/). The data is from a comma-separated-value file available
+[here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2).
+There is also some documentation of the data available
+[here](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf).
+
+```{r}
+
+library('ggplot2')
+library('plyr')
+
+path <- getwd()
+
+file_name <- 'StormData.csv.bz2'
+    
+directory <- paste(path ,"data" , file_name, sep = '/')
+
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+
+    
+if (file.exists(directory)){
+    print("you are good to go")
+} else {
+    download.file(url, destfile = directory )
+    print('file downloaded and you good to go')
+    #unzip(zipfile = "dataFiles.zip",exdir = "data") #use it if it's a zip or it's a rar file 
+    
+}
+
+storm <- read.csv(bzfile("data/StormData.csv.bz2"), header = T)
+
+```
+How many data are we dealing with ?
+```{r}
+dim(storm)
+```
+it's looks like 902297 record with 37 feature 
+
+lets take alook into the data 
+
+```{r}
+head(storm)
+```
+there is alot of missing values here may be due to the fact that they are recorded in 1950 and not all the feature were recorded then ?
+also the bgn time is written in not normal state 
+
+
+lets take alook at summary 
+```{r}
+summary(storm)
+```
+
+```{r}
+str(storm)
+```
+
+## Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+To find the event types that are most harmful to population health, the number of casualties are aggregated by the event type.
+
+```{r}
+storm$harmed <- storm$FATALITIES + storm$INJURIES
+```
+
+```{r}
+totalharmed <- aggregate(storm$harmed, by = list(event = storm$EVTYPE), "sum")
+totalharmed <- totalharmed[order(-totalharmed$x),][1:10,]
+
+```
+
+
+```{r}
+#barplot(totalharmed$x, names.arg = totalharmed$event, main = 'top 10 most harmful events', ylab = 'Number of harmed people')
+ggplot(totalharmed, aes(x = reorder(event, -x), y = x)) + geom_bar(stat="identity") + xlab("events")+ ylab("Number of harmed people")+ ggtitle("top 10 most harmful eventsin the U.S from 1950-2011") + theme(axis.text.x = element_text(angle = 90))
+```
+tornado looks like alot lets make it into percentage 
+```{r}
+totalharmed$perc = totalharmed$x /sum(totalharmed$x)*100
+```
+
+```{r}
+totalharmed
+```
+
+it's looks like the tornado comes on top with 70 % > the next in list with only 6 %
+
+---
+
+## Across the United States, which types of events have the greatest economic consequences?
+To analyze the impact of weather events on the economy, available property
+damage and crop damage reportings/estimates were used.
+
+```{r}
+storm$damage <- storm$PROPDMG + storm$CROPDMG
+```
+
+```{r}
+totaldamage  <- aggregate(x= list(damage = storm$damage , PROPDMG = storm$PROPDMG, CROPDMG = storm$CROPDMG), by = list(event = storm$EVTYPE), sum)
+```
+
+
+```{r}
+totaldamage$Pperc = totaldamage$PROPDMG /sum(totaldamage$PROPDMG)*100
+totaldamage$Cperc = totaldamage$CROPDMG /sum(totaldamage$CROPDMG)*100
+totaldamage$AllDperc = totaldamage$damage /sum(totaldamage$damage)*100
+```
+
+```{r}
+ggplot(data = totaldamage[order(-totaldamage$PROPDMG),][1:10,] , aes(x = reorder(event, -PROPDMG), y = PROPDMG)) + geom_bar(stat="identity") + xlab("events")+ ylab("tatal property damage")+ ggtitle("top 10 most property damaging events in the U.S from 1950-2011") + theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+totaldamage[order(-totaldamage$PROPDMG),][1:10,c(1,3,5)]
+```
+
+looks like tornado is the most thing that damge property in US with 29 % and flash flood comes next with 13 %
+
+```{r}
+ggplot(data = totaldamage[order(-totaldamage$CROPDMG),][1:10,] , aes(x = reorder(event, -CROPDMG), y = CROPDMG)) + geom_bar(stat="identity") + xlab("events")+ ylab("tatal crops damage")+ ggtitle("top 10 most crop damaging events in the U.S from 1950-2011") + theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+totaldamage[order(-totaldamage$CROPDMG),][1:10,c(1,4,6)]
+```
+now hail comes on top in matter of crop damage with 42 % and FLASH FLOOD second with 13 %
+
+
+```{r}
+ggplot(data = totaldamage[order(-totaldamage$damage),][1:10,] , aes(x = reorder(event, -damage), y = damage)) + geom_bar(stat="identity") + xlab("events")+ ylab("tatal damage")+ ggtitle("top 10 most damaging events in the U.S from 1950-2011") + theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+totaldamage[order(-totaldamage$damage),][1:10,c(1,2,7)]
+```
+
+in term of total economic damge TORNADO	 comes on top with 27 % and FLASH FLOOD	 second with 13 %
+
+
+
+
+
+at the end i can say that the most danger this is the tornados as the life of the people is the most important things but if we sure the life is safe then we can argu out of flood or hail or tornados can be more dangers 
