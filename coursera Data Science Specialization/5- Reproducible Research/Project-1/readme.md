@@ -1,8 +1,8 @@
 # Peer-graded Assignment: Course Project 1
 
-1.  [Instructions](/learn/reproducible-research/peer/gYyPt/course-project-1)
-2.  [My submission](/learn/reproducible-research/peer/gYyPt/course-project-1/submit)
-3.  [Discussions](/learn/reproducible-research/peer/gYyPt/course-project-1/discussions)
+1.  [Instructions](https://www.coursera.org/learn/reproducible-research/peer/gYyPt/course-project-1)
+2.  [My submission](https://www.coursera.org/learn/reproducible-research/peer/gYyPt/course-project-1/review/w0Rk8CbZEeu6_A4mybAbxw)
+3.  [Discussions](https://www.coursera.org/learn/reproducible-research/peer/gYyPt/course-project-1/review/w0Rk8CbZEeu6_A4mybAbxw)
 
 Introduction
 
