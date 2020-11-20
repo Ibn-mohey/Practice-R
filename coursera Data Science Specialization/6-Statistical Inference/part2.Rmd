@@ -1,0 +1,93 @@
+---
+title: "part 2"
+author: "Abd-elrhman mohey"
+date: "11/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part 2: Basic Inferential Data Analysis Instructions
+Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+1.  Load the ToothGrowth data and perform some basic exploratory data analyses
+2.  Provide a basic summary of the data.
+3.  Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
+4.  State your conclusions and the assumptions needed for your conclusions.
+
+```{r}
+library(ggplot2)
+library(datasets)
+```
+
+## load and explore the data set a bit 
+
+```{r}
+data(ToothGrowth)
+str(ToothGrowth)
+```
+
+```{r}
+head(ToothGrowth)
+```
+
+```{r}
+tail(ToothGrowth)
+```
+
+
+```{r}
+summary(ToothGrowth)
+```
+
+we have 2 equal supp lets see what is the deffrent there 
+
+```{r}
+ggplot(data=ToothGrowth, aes(x=as.factor(dose), y=len, fill=supp)) +
+    geom_bar(stat="identity") +
+    facet_grid(. ~ supp) +
+    xlab("Dose(mg)") +
+    ylab("Tooth length")
+```
+from the first view i can see that the toth lens in the first, second dose incresed in OJ supp then VC 
+
+```{r}
+qplot(dose, len, data = ToothGrowth, color = supp, geom = "point") +  geom_smooth(method = "lm")  + labs(x = "Dose(mg)", y = "Tooth length")
+```
+same thing happned here 
+
+## basic summary 
+
+```{r}
+summary(ToothGrowth)
+```
+
+## Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there’s other approaches worth considering)
+
+T-test for dose 0.5 mg:
+```{r}
+dose_.5 <- t.test(len ~ supp, ToothGrowth[ToothGrowth$dose == .5, ])
+dose_.5$p.value
+dose_.5$conf.int
+```
+
+T-test for dose 1 mg:
+```{r}
+dose_1 <- t.test(len ~ supp, ToothGrowth[ToothGrowth$dose == 1, ])
+dose_1$p.value
+dose_1$conf.int
+```
+T-test for dose 2 mg:
+```{r}
+dose_2 <-t.test(len ~ supp, ToothGrowth[ToothGrowth$dose == 2, ])
+dose_2$p.value
+dose_1$conf.int
+```
+
+## concultion 
+
+as we can see we can reject the null in the 3 doses that the type of the supp can change the tooth growth but increasing the dose level leads to increased tooth growth.
+
+
