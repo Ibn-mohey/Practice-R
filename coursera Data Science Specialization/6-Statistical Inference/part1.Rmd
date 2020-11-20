@@ -2,7 +2,9 @@
 title: "Statistical Inference Course Project 1"
 author: "Abd-elrhman mohey"
 date: "11/20/2020"
-output: md_document
+output: 
+    pdf_document :
+      latex_engine : xelatex
 ---
 
 
