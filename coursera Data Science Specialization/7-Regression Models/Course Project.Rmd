@@ -1,0 +1,103 @@
+---
+title: "Regression Models"
+author: "Abd-elrhman mohey"
+date: "11/21/2020"
+output: pdf_document
+---
+## Load Data
+Load the dataset and the libs 
+```{r , results="hide", include=FALSE}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(purrr)
+```
+
+```{r}
+data(mtcars)
+data <- mtcars
+```
+
+## explore the data 
+```{r , results="hide"}
+head(data)
+```
+
+```{r , results="hide"}
+str(data)
+```
+
+convert categorical variables to factors.
+
+```{r}
+data <- mtcars
+data$am <- as.factor(data$am); levels(data$am) <- c("AT", "MA") 
+data$cyl <- as.factor(data$cyl)
+data$gear <- as.factor(data$gear)
+data$vs <- as.factor(data$vs);levels(data$vs) <- c("V", "S")
+data$carb <- as.factor(data$carb)
+```
+
+```{r , results="hide"}
+str(data)
+```
+```{r  , results="hide"}
+summary(data)
+```
+
+```{r}
+
+data %>%   keep(is.numeric) %>%   gather() %>%   ggplot(aes(value)) +    facet_wrap(~ key, scales = "free") +    geom_histogram(fill = "green")
+```
+
+
+```{r}
+ggplot(data, aes(am, mpg)) +     geom_boxplot(fill = "cyan") +     scale_x_discrete(labels=c("AT" = "Automatic", "MA" = "Manual"))
+
+```
+
+```{r , results="hide"}
+aggregate(mpg~am, data=data, mean)
+```
+
+The mean MPG of manual transmission cars is around 8 MPG higher than that of automatic transmission cars. Is this difference significant?
+
+## Statistical Inference
+
+### t- test on the MPG for Automatic and manual cars 
+```{r}
+atData<-data[data$am == "AT",]; maData<-data[data$am == "MA",]; testResults <-t.test(atData$mpg, maData$mpg)
+testResults$p.value
+```
+as the p value equal to .001 we can reject the null that there is no difference between transmission types.
+and we sure that the type matter for now
+```{r}
+testResults$estimate
+```
+
+## model selection 
+
+```{r}
+fit1 <- lm(mpg ~ factor(am), data)
+fit2 <- lm(mpg ~ factor(am) + factor(cyl), data)
+fit3 <- lm(mpg ~ factor(am) + factor(cyl) + disp, data)
+fit4 <- lm(mpg ~ factor(am) + factor(cyl) + disp + wt, data)
+anova(fit1, fit2, fit3, fit4)
+```
+
+looks like adding cyl was necessary but can't say the same about others
+
+```{r}
+summary(fit2)$coefficients
+```
+## Residuals & Diagnostics
+
+```{r}
+par(mfrow = c(2,2))
+plot(fit2)
+```
+
+
+## Conclusion
+
+in final the model and the t test show a difference between the automatic and the manual transmission cars for miles per gallon. In general, manual cars have a better mpg. it's around 8 in EDA and around  2.56 mpg in favor of manual cars in the linear model as we incluede the cyl variable in final manual cars are better for mpg.
