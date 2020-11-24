@@ -1,0 +1,123 @@
+---
+title: "Prediction Assignment Writeup"
+author: "Abd-elrhman mohey"
+date: "11/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## load libraries 
+
+```{r}
+library(data.table)
+library(caret)
+library(ggplot2)
+library(randomForest)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+set.seed(1)
+```
+
+## load data 
+```{r}
+
+train = read.csv("pml-training.csv",na.strings= c("", "NA"))
+test = read.csv("pml-testing.csv",na.strings= c("", "NA"))
+```
+
+## explore the data 
+
+```{r}
+head(train)
+```
+
+```{r}
+dim(train)
+dim(test)
+```
+
+## cleaning data set 
+
+there seems to be alot of NA cloumns 
+
+```{r}
+#Remove NA cols
+todrop_columns <-colSums(is.na(train))<.8*nrow(train)
+train <- train[,todrop_columns]
+test <- test[,todrop_columns]
+dim(train)
+dim(test)
+```
+```{r}
+colnames(train) == colnames(test)
+```
+
+```{r}
+head(train)
+```
+## explore more 
+
+```{r}
+splom(classe~train[1:5], data = train)
+```
+
+```{r}
+barplot(table(train$classe))
+```
+
+## split the train data set 
+
+```{r}
+inTrain = createDataPartition(train$classe, p = 3/4)[[1]]
+training = train[ inTrain,]
+testing = train[-inTrain,]
+```
+
+## start fitting the models 
+
+### random forest 
+
+```{r}
+training$classe = factor(training$classe) 
+model_rf <- randomForest( classe ~ .,  data =training,  ntree = 250)
+pred_rf <- predict(model_rf, testing)
+rf1 <- table(pred_rf, testing$classe)
+confusionMatrix(rf1)
+```
+### Liner Discriminant Analysis
+
+```{r}
+model_lda <- train(classe ~ ., data = training, method = "lda")
+pred_lda <- predict(model_lda, testing)
+lda1 <- table(pred_lda, testing$classe)
+confusionMatrix(lda1)
+```
+
+
+### Recursive Partitioning and Regression Trees
+
+```{r}
+model_rpart <- train(classe ~ ., data = training, method = "rpart")
+pred_rpart<- predict(model_rpart, testing)
+rpart1 <- table(pred_rpart, testing$classe)
+confusionMatrix(rpart1)
+```
+
+plot the tree 
+
+```{r}
+library(rattle)
+fancyRpartPlot(model_rpart$finalModel)
+```
+
+
+## summury
+it looks like the random forest model has the higest Accuracy  so i will stick with it 
+```{r}
+final_data <- predict(model_rf, test)
+final_data
+```
+
