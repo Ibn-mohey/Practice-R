@@ -1,0 +1,1982 @@
+
+
+## the caret package 
+
+```{r , eval=FALSE}
+install.packages("caret")
+```
+
+
+### Caret functionality
+
+* Some preprocessing (cleaning)
+  * preProcess
+* Data splitting
+  * createDataPartition
+  * createResample
+  * createTimeSlices
+* Training/testing functions
+  * train
+  * predict
+* Model comparison
+  * confusionMatrix
+
+---
+
+### Machine learning algorithms in R
+
+* Linear discriminant analysis
+* Regression
+* Naive Bayes
+* Support vector machines
+* Classification and regression trees
+* Random forests
+* Boosting
+* etc. 
+
+
+### SPAM Example: Data splitting
+
+```{r loadPackage}
+library(caret); library(kernlab); data(spam)
+#partition the data set 
+inTrain <- createDataPartition( y = spam$type, p=0.75, list=FALSE)
+training <- spam[inTrain,] #object
+testing <- spam[-inTrain,] #not in it 
+dim(training)
+```
+
+
+--- 
+
+### SPAM Example: Fit a model
+
+```{r training, dependson="loadPackage",cache=TRUE}
+set.seed(32343)
+modelFit <- train(type ~.,data=training, method="glm") #all other variable used and use glm 
+modelFit
+```
+
+
+--- 
+
+### SPAM Example: Final model
+
+```{r finalModel, dependson="training",cache=TRUE}
+#modelFit <- train(type ~.,data=training, method="glm")
+modelFit$finalModel
+```
+
+
+--- 
+
+### SPAM Example: Prediction
+
+```{r predictions, dependson="training",cache=TRUE}
+predictions <- predict(modelFit,newdata=testing)
+predictions
+```
+
+--- 
+
+### SPAM Example: Confusion Matrix
+
+with M capital 
+
+```{r confusion, dependson="predictions",cache=TRUE}
+confusionMatrix(predictions,testing$type)
+```
+
+---
+
+## data slicing 
+
+
+### SPAM Example: K-fold 
+
+```{r kfold,dependson="loadPackage"}
+set.seed(32323)
+folds <- createFolds(y = spam$type , k=10 ,
+                             list=TRUE , returnTrain=TRUE) #create object
+sapply(folds,length) # apply to lenght
+folds[[1]][1:10] 
+```
+splited in order
+
+---
+
+#### SPAM Example: Return test
+
+```{r kfoldtest,dependson="loadPackage"}
+set.seed(32323)
+folds <- createFolds(y=spam$type,k=10,
+                             list=TRUE,returnTrain=FALSE) #returen just the test 
+sapply(folds,length)
+folds[[1]][1:10]
+```
+
+---
+
+### SPAM Example: Resampling random 
+
+```{r resample,dependson="loadPackage"}
+set.seed(32323)
+folds <- createResample(y = spam$type , times=10 ,
+                             list=TRUE)
+sapply(folds,length)
+folds[[1]][1:10]
+```
+here u might get something more than once 
+---
+
+### SPAM Example: Time Slices
+
+```{r time,dependson="loadPackage"}
+set.seed(32323)
+tme <- 1:1000
+folds <- createTimeSlices( y = tme , initialWindow=20 ,
+                          horizon=10)
+```
+
+```{r}
+names(folds)
+```
+
+```{r}
+folds$train[[1]]
+folds$test[[1]]
+```
+
+##012trainOptions
+
+
+### SPAM Example
+
+```{r loadPackage,cache=TRUE}
+inTrain <- createDataPartition( y = spam$type ,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+modelFit <- train(type ~.,data=training, method="glm") #use the defaults
+```
+
+---
+
+### Train options
+
+```{r ,dependson="loadPackage"}
+args(trainControl)
+```
+
+1. preprocess 
+2. weights 
+3. metric 
+
+---
+
+### Metric options
+
+__Continous outcomes__:
+  * _RMSE_ = Root mean squared error
+  * _RSquared_ = $R^2$ from regression models
+
+__Categorical outcomes__:
+  * _Accuracy_ = Fraction correct
+  * _Kappa_ = A measure of [concordance]
+  
+  
+
+--- 
+
+### trainControl
+
+```{r , dependson="loadPackage",cache=TRUE}
+args(trainControl)
+```
+
+--- 
+
+### trainControl resampling
+
+* _method_
+  * _boot_ = bootstrapping
+  * _boot632_ = bootstrapping with adjustment
+  * _cv_ = cross validation
+  * _repeatedcv_ = repeated cross validation
+  * _LOOCV_ = leave one out cross validation
+* _number_
+  * For boot/cross validation
+  * Number of subsamples to take
+* _repeats_
+  * Number of times to repeate subsampling
+  * If big this can _slow things down_
+
+
+---
+
+### Setting the seed
+
+* It is often useful to set an overall seed
+* You can also set a seed for each resample
+* Seeding each resample is useful for parallel fits
+
+
+
+--- 
+
+
+#### seed example
+
+```{r , dependson="seedExample",cache=TRUE}
+set.seed(1235)
+modelFit2 <- train(type ~.,data=training, method="glm")
+modelFit2
+```
+
+
+--- 
+
+#### seed example
+
+```{r , dependson="seedExample",cache=TRUE}
+set.seed(1235)
+modelFit3 <- train(type ~.,data=training, method="glm")
+modelFit3
+```
+
+
+--- 
+
+## 013plottingPredictors
+
+
+### Example: Wage data
+
+```{r loadData,cache=TRUE}
+library(ISLR); library(ggplot2); 
+data(Wage)
+summary(Wage)
+```
+
+
+
+---
+
+### Get training/test sets
+
+```{r trainingTest,dependson="loadData",cache=TRUE}
+inTrain <- createDataPartition( y = Wage$wage ,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]
+testing <- Wage[-inTrain,]
+dim(training); dim(testing)
+```
+
+
+---
+
+### Feature plot (*caret* package)
+
+```{r ,dependson="trainingTest",fig.height=10,fig.width=10}
+featurePlot(x=training[,c("age","education","jobclass")],
+            y = training$wage,
+            plot="pairs")
+```
+
+
+---
+
+### Qplot (*ggplot2* package)
+
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(age,wage,data=training)
+```
+
+there is seems to be a big chunck up threre deffrent from the bottom with trends why ?
+
+---
+
+### Qplot with color (*ggplot2* package)
+
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot( age , wage , colour = jobclass , data = training)
+```
+
+
+---
+
+### Add regression smoothers (*ggplot2* package)
+
+
+```{r ,dependson="trainingTest",fig.height=6,fig.width=8}
+qq <- qplot(age,wage,colour=education,data=training)
+qq +  geom_smooth(method='lm',formula=y~x)
+```
+
+
+---
+
+### cut2, making factors (*Hmisc* package)
+break some thing into deffrent categories like age or wage 
+
+```{r cut2,dependson="trainingTest",fig.height=4,fig.width=6,cache=TRUE}
+library(Hmisc);library(survival)
+cutWage <- cut2( training$wage , g = 3 )
+table(cutWage)
+```
+
+---
+
+### Boxplots with cut2
+
+
+```{r ,dependson="cut2plot",fig.height=4,fig.width=6,cache=TRUE}
+p1 <- qplot( cutWage , age , data = training , fill = cutWage , 
+      geom=c("boxplot"))
+p1
+```
+
+---
+
+### Boxplots with points overlayed
+
+
+```{r ,dependson="cut2plot",fig.height=4,fig.width=9}
+library(gridExtra)
+p2 <- qplot( cutWage , age , data = training , fill=cutWage,
+      geom=c("boxplot","jitter"))
+grid.arrange(p1,p2,ncol=2)
+```
+
+
+---
+
+### Tables
+
+```{r ,dependson="cut2",fig.height=4,fig.width=9}
+t1 <- table(cutWage,training$jobclass)
+t1
+```
+
+see proportion each row 
+```{r}
+prop.table(t1,1) #
+```
+
+see proportion each column
+```{r}
+prop.table(t1,2) #
+```
+
+---
+
+### Density plots
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(wage,colour=education,data=training,geom="density")
+```
+
+
+---
+
+### Notes and further reading
+
+* Make your plots only in the training set 
+  * Don't use the test set for exploration!
+* Things you should be looking for
+  * Imbalance in outcomes/predictors
+  * Outliers 
+  * Groups of points not explained by a predictor
+  * Skewed variables 
+* [ggplot2 tutorial](http://rstudio-pubs-static.s3.amazonaws.com/2176_75884214fc524dc0bc2a140573da38bb.html)
+* [caret visualizations](http://caret.r-forge.r-project.org/visualizations.html)
+
+---
+
+## 014 basic Preprocessing
+
+```{r loadPackage,cache=TRUE,fig.height=3.5,fig.width=3.5}
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+
+```
+
+### Why preprocess?
+transfrom for more usefull production algorithms 
+```{r}
+hist(training$capitalAve,main="",xlab="ave. capital run length")
+```
+skweed
+
+```{r ,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+mean(training$capitalAve)
+sd(training$capitalAve)
+```
+
+very big Standard diviation 
+
+
+---
+
+### Standardizing
+
+```{r ,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+trainCapAve <- training$capitalAve
+trainCapAveS <- (trainCapAve  - mean(trainCapAve))/sd(trainCapAve) 
+mean(trainCapAveS)
+sd(trainCapAveS)
+```
+
+---
+
+### Standardizing - test set
+
+```{r ,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+testCapAve <- testing$capitalAve
+testCapAveS <- (testCapAve  - mean(trainCapAve))/sd(trainCapAve) 
+mean(testCapAveS)
+sd(testCapAveS)
+```
+
+the mean will be then not excatly 0 and STD will not be 1 but it must be done 
+---
+
+### Standardizing - _preProcess_ function
+it makes it for us
+```{r preprocess,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+preObj <- preProcess(training[,-58],method=c("center","scale"))
+trainCapAveS <- predict(preObj,training[,-58])$capitalAve
+mean(trainCapAveS)
+sd(trainCapAveS)
+```
+
+
+---
+
+### Standardizing - _preProcess_ function
+use the opject we created to preprocess the train with it's paramter on the test set 
+```{r ,dependson="preprocess",cache=TRUE,fig.height=3.5,fig.width=3.5}
+testCapAveS <- predict(preObj,testing[,-58])$capitalAve
+mean(testCapAveS)
+sd(testCapAveS)
+```
+
+---
+
+### Standardizing - _preProcess_ argument
+we can use same preprocess function as an argument in the train function 
+```{r training, dependson="loadPackage",cache=TRUE}
+set.seed(32343)
+modelFit <- train(type ~.,data=training,
+                  preProcess=c("center","scale"),method="glm")
+modelFit
+```
+
+
+---
+
+### Standardizing - Box-Cox transforms
+take continouse data and try to make them look like normal data 
+usuing maximum likelihood
+
+```{r ,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=7}
+preObj <- preProcess(training[,-58],method=c("BoxCox"))
+trainCapAveS <- predict(preObj,training[,-58])$capitalAve
+par(mfrow=c(1,2)); hist(trainCapAveS); qqnorm(trainCapAveS)
+```
+
+
+---
+
+### Standardizing - Imputing data
+deal with missing data 
+usuing k nearest neighbor's imputation
+```{r knn,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=7}
+library(RANN)
+set.seed(13343)
+
+# Make some values NA
+training$capAve <- training$capitalAve
+selectNA <- rbinom(dim(training)[1],size=1,prob=0.05)==1
+training$capAve[selectNA] <- NA
+
+# Impute and standardize
+preObj <- preProcess( training[,-58] , method = "knnImpute")
+capAve <- predict( preObj , training[,-58])$capAve
+
+# Standardize true values
+capAveTruth <- training$capitalAve
+capAveTruth <- (capAveTruth-mean(capAveTruth))/sd(capAveTruth)
+```
+
+
+---
+
+### Standardizing - Imputing data
+
+```{r ,dependson="knn",cache=TRUE,fig.height=3.5,fig.width=7}
+quantile(capAve - capAveTruth)
+```
+
+```{r}
+quantile((capAve - capAveTruth)[selectNA])
+```
+
+
+```{r}
+quantile((capAve - capAveTruth)[!selectNA])
+```
+after the imputation check that the data set didnt get so much noise or the quantile changed 
+---
+
+### Notes and further reading
+
+* Training and test must be processed in the same way
+* Test transformations will likely be imperfect
+  * Especially if the test/training sets collected at different times
+* Careful when transforming factor variables!
+* [preprocessing with caret](http://caret.r-forge.r-project.org/preprocess.html)
+
+---
+
+## 15  Covariate creation
+
+
+
+### Two levels of covariate creation
+
+**Level 1: From raw data to covariate**
+
+1 - create feature from the raw data to use 
+
+**Level 2: Transforming tidy covariates** 
+
+```{r spamData,fig.height=4,fig.width=4}
+library(kernlab);data(spam)
+
+spam$capitalAveSq <- spam$capitalAve^2
+```
+
+
+---
+
+### Level 1, Raw data -> covariates
+depends on the raw data and the application 
+
+* Depends heavily on application
+* The balancing act is summarization vs. information loss
+the best feature are the ones that capture important information
+* Examples:
+  * Text files: frequency of words, frequency of phrases ([Google ngrams](https://books.google.com/ngrams)), frequency of capital letters.
+  * Images: Edges, corners, blobs, ridges ([computer vision feature detection](http://en.wikipedia.org/wiki/Feature_detection_(computer_vision)))
+  * Webpages: Number and type of images, position of elements, colors, videos ([A/B Testing](http://en.wikipedia.org/wiki/A/B_testing))
+  * People: Height, weight, hair color, sex, country of origin. 
+* The more knowledge of the system you have the better the job you will do. 
+* When in doubt, err on the side of more features
+* Can be automated, but use caution!
+
+
+---
+
+### Level 2, Tidy covariates -> new covariates
+
+* More necessary for some methods (regression, svms) than for others (classification trees).
+* Should be done _only on the training set_
+* The best approach is through exploratory analysis (plotting/tables)
+* New covariates should be added to data frames
+
+---
+
+### Load example data
+
+
+```{r loadData,cache=TRUE}
+library(ISLR); library(caret); data(Wage);
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; 
+testing <- Wage[-inTrain,]
+```
+
+
+---
+
+### Common covariates to add, dummy variables
+
+__Basic idea - convert factor variables to [indicator variables](http://bit.ly/19ZhWB6)__
+
+```{r dummyVar,dependson="loadData"}
+table(training$jobclass)
+dummies <- dummyVars(wage ~ jobclass,data=training)
+head(predict(dummies,newdata=training))
+```
+
+
+
+---
+
+### Removing zero covariates
+have no variability in them 
+```{r ,dependson="dummyVar"}
+nsv <- nearZeroVar(training,saveMetrics=TRUE)
+nsv
+```
+
+
+
+---
+
+### Spline basis
+
+curvy lines 
+
+```{r splines,dependson="dummyVar",cache=TRUE}
+library(splines)
+bsBasis <- bs(training$age,df=3) #third degree
+head(bsBasis)
+```
+
+
+_See also_: ns(),poly()
+
+---
+
+### Fitting curves with splines
+
+```{r ,dependson="splines",fig.height=4,fig.width=4}
+lm1 <- lm(wage ~ bsBasis,data=training) #pass the generated after the ~
+plot(training$age,training$wage,pch=19,cex=0.5)
+points(training$age,predict(lm1,newdata=training),col="red",pch=19,cex=0.5)
+```
+
+
+---
+
+### Splines on the test set
+use same techs on the test set
+```{r ,dependson="splines",fig.height=4,fig.width=4}
+head(predict(bsBasis,age=testing$age))
+```
+
+
+---
+
+### Notes and further reading
+
+* Level 1 feature creation (raw data to covariates)
+  * Science is key. Google "feature extraction for [data type]"
+  * Err on overcreation of features
+  * In some applications (images, voices) automated feature creation is possible/necessary
+    * http://www.cs.nyu.edu/~yann/talks/lecun-ranzato-icml2013.pdf
+* Level 2 feature creation (covariates to new covariates)
+  * The function _preProcess_ in _caret_ will handle some preprocessing.
+  * Create new covariates if you think they will improve fit
+  * Use exploratory analysis on the training set for creating them
+  * Be careful about overfitting!
+* [preprocessing with caret](http://caret.r-forge.r-project.org/preprocess.html)
+* If you want to fit spline models, use the _gam_ method in the _caret_ package which allows smoothing of multiple variables.
+* More on feature creation/data tidying in the Obtaining Data course from the Data Science course track. 
+
+---
+
+## 16 Preprocessing with Principal Components Analysis (PCA)
+
+
+### Correlated predictors
+
+```{r loadPackage,cache=TRUE,fig.height=3.5,fig.width=3.5}
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+
+M <- abs(cor(training[,-58]))
+diag(M) <- 0 #remove every variable with it self 
+which(M > 0.8,arr.ind=T) #high correlated 
+```
+
+---
+
+### Correlated predictors
+
+```{r,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+names(spam)[c(34,32)]
+```
+
+```{r}
+plot(spam[,34],spam[,32])
+```
+so the idea is including this 2 variables in the model might not be so usefull 
+
+---
+
+### Basic PCA idea
+take highe correlated variable and make them into only one 
+* We might not need every predictor
+* A weighted combination of predictors might be better
+* We should pick this combination to capture the "most information" possible
+* Benefits
+  * Reduced number of predictors
+  * Reduced noise (due to averaging)
+
+
+---
+
+### We could rotate the plot
+
+$$ X = 0.71 \times {\rm num 415} + 0.71 \times {\rm num857}$$
+
+$$ Y = 0.71 \times {\rm num 415} - 0.71 \times {\rm num857}$$
+
+most of variability happens in the X axis 
+```{r,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+X <- 0.71*training$num415 + 0.71*training$num857
+Y <- 0.71*training$num415 - 0.71*training$num857
+plot(X,Y)
+```
+
+we use the sum here 
+---
+
+### Related problems
+
+You have multivariate variables $X_1,\ldots,X_n$ so $X_1 = (X_{11},\ldots,X_{1m})$
+
+* Find a new set of multivariate variables that are uncorrelated and explain as much variance as possible.
+* If you put all the variables together in one matrix, find the best matrix created with fewer variables (lower rank) that explains the original data.
+
+
+The first goal is statistical and the second goal is data compression
+
+---
+
+### Related solutions - PCA/SVD
+
+__SVD__
+
+If $X$ is a matrix with each variable in a column and each observation in a row then the SVD is a "matrix decomposition"
+
+$$ X = UDV^T$$
+
+where the columns of $U$ are orthogonal (left singular vectors), the columns of $V$ are orthogonal (right singluar vectors) and $D$ is a diagonal matrix (singular values). 
+
+__PCA__
+
+The principal components are equal to the right singular values if you first scale (subtract the mean, divide by the standard deviation) the variables.
+
+---
+
+### Principal components in R - prcomp
+
+```{r prcomp,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+smallSpam <- spam[,c(34,32)]
+prComp <- prcomp(smallSpam)
+plot(prComp$x[,1],prComp$x[,2])
+```
+you migh reduce using this tech of combination if sums and differences 
+
+---
+
+### Principal components in R - prcomp
+
+```{r ,dependson="prcomp",cache=TRUE,fig.height=3.5,fig.width=3.5}
+prComp$rotation
+```
+
+how that happned 
+
+---
+
+### PCA on SPAM data
+
+```{r spamPC,dependson="loadPackage",cache=TRUE,fig.height=3.5,fig.width=3.5}
+typeColor <- ((spam$type=="spam")*1 + 1) #black spam not black not spam 
+prComp <- prcomp(log10(spam[,-58]+1)) #PCA all the data set #log transform for skewed data sets 
+plot(prComp$x[,1],prComp$x[,2],col=typeColor,xlab="PC1",ylab="PC2")
+```
+in the PC1 there is separation of the ham vs the spam that reduce the data set size with still capture the wanted variation 
+
+
+---
+
+### PCA with caret
+
+```{r ,dependson="spamPC",cache=TRUE,fig.height=3.5,fig.width=3.5}
+preProc <- preProcess(log10(spam[,-58]+1),method="pca",pcaComp=2)
+spamPC <- predict(preProc,log10(spam[,-58]+1))
+plot(spamPC[,1],spamPC[,2],col=typeColor)
+```
+
+
+---
+
+### Preprocessing with PCA
+```{r}
+dim(trainPC)
+dim(training)
+```
+
+```{r pcaCaret,dependson="spamPC",cache=TRUE,fig.height=3.5,fig.width=3.5}
+preProc <- preProcess(log10(training[,-58]+1),method="pca",pcaComp=2)
+trainPC <- predict(preProc,log10(training[,-58]+1))
+trainPC$type <- training$type
+modelFit <- train(type ~ .,method="glm",data=trainPC)
+```
+
+---
+
+### Preprocessing with PCA
+
+```{r ,dependson="pcaCaret",cache=TRUE,fig.height=3.5,fig.width=3.5}
+testPC <- predict(preProc,log10(testing[,-58]+1))
+confusionMatrix(testing$type,predict(modelFit,testPC))
+```
+
+---
+
+### Alternative (sets # of PCs)
+
+make it directly not with sepetate 
+```{r ,dependson="pcaCaret",cache=TRUE,fig.height=3.5,fig.width=3.5}
+modelFit <- train(type ~ .,method="glm",preProcess="pca", data=training)
+confusionMatrix(testing$type,predict(modelFit,testing))
+```
+
+---
+
+### Final thoughts on PCs
+
+* Most useful for linear-type models
+* Can make it harder to interpret predictors
+* Watch out for outliers! 
+  * Transform first (with logs/Box Cox)
+  * Plot predictors to identify problems
+* For more info see 
+  * Exploratory Data Analysis
+  * [Elements of Statistical Learning](http://statweb.stanford.edu/~tibs/ElemStatLearn/)
+  
+  
+---
+
+## 017 Predicting with regression
+
+
+
+### Key ideas
+
+* Fit a simple regression model
+* Plug in new covariates and multiply by the coefficients
+* Useful when the linear model is (nearly) correct
+
+__Pros__:
+
+* Easy to implement
+* Easy to interpret
+
+__Cons__:
+
+* Often poor performance in nonlinear settings often use with other machine learning algorithms on complicated examples 
+
+---
+
+### Example: Old faithful eruptions
+
+```{r faith}
+library(caret);data(faithful); set.seed(333)
+inTrain <- createDataPartition(y=faithful$waiting,
+                              p=0.5, list=FALSE)
+trainFaith <- faithful[inTrain,]; testFaith <- faithful[-inTrain,]
+head(trainFaith)
+```
+
+---
+
+#### Eruption duration versus waiting time
+
+```{r dependson="faith",fig.height=4,fig.width=4}
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+```
+
+---
+
+### Fit a linear model 
+
+$$ ED_i = b_0 + b_1 WT_i + e_i $$
+
+```{r faithlm,dependson="faith",fig.height=4,fig.width=4}
+lm1 <- lm(eruptions ~ waiting,data=trainFaith)
+summary(lm1)
+```
+
+
+---
+### Model fit
+
+```{r dependson="faithlm",fig.height=4,fig.width=4}
+plot( trainFaith$waiting , trainFaith$eruptions , pch=19 , col="blue" , xlab="Waiting" , ylab="Duration" )
+lines( trainFaith$waiting , lm1$fitted , lwd=3)
+```
+
+---
+
+### Predict a new value
+
+$$\hat{ED} = \hat{b}_0 + \hat{b}_1 WT$$
+
+```{r ,dependson="faithlm",fig.height=4,fig.width=4}
+coef(lm1)[1] + coef(lm1)[2]*80
+```
+
+```{r}
+newdata <- data.frame(waiting=80)
+predict(lm1,newdata)
+```
+
+---
+
+### Plot predictions - training and test
+
+```{r ,dependson="faithlm",fig.height=4,fig.width=8}
+par(mfrow=c(1,2))
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(trainFaith$waiting,predict(lm1),lwd=3)
+plot(testFaith$waiting,testFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(testFaith$waiting,predict(lm1,newdata=testFaith),lwd=3)
+```
+
+---
+
+### Get training set/test set errors
+
+```{r ,dependson="faithlm",fig.height=4,fig.width=4}
+# Calculate RMSE on training
+sqrt( sum (( lm1$fitted - trainFaith$eruptions )^2 ) )
+
+# Calculate RMSE on test
+sqrt ( sum ( ( predict ( lm1 , newdata = testFaith )- testFaith$eruptions )^2 ) )
+```
+
+---
+
+### Prediction intervals
+
+```{r ,dependson="faithlm",fig.height=4,fig.width=4}
+pred1 <- predict(lm1,newdata=testFaith,interval="prediction")
+ord <- order( testFaith$waiting )
+plot( testFaith$waiting , testFaith$eruptions , pch=19,col="blue")
+matlines( testFaith$waiting[ord] , pred1[ord,] , type="l", , col=c(1,2,2) , lty = c(1,1,1), lwd=3)
+```
+
+
+---
+
+### Same linear model up there  with caret
+
+```{r caretfaith,dependson="faith",fig.height=4,fig.width=4}
+modFit <- train(eruptions ~ waiting,data=trainFaith,method="lm")
+summary(modFit$finalModel)
+```
+
+
+---
+
+### Notes and further reading
+
+* Regression models with multiple covariates can be included
+* Often useful in combination with other models 
+
+---
+
+## 18 Predicting with regression, multiple covariates
+
+
+### Example: Wage data
+
+```{r loadData,cache=TRUE}
+library(ISLR); library(ggplot2); library(caret); #loaddata set
+data(Wage); Wage <- subset(Wage,select=-c(logwage)) #exploration every but we try to predict
+summary(Wage)
+```
+
+
+
+---
+
+### Get training/test sets
+
+```{r trainingTest,dependson="loadData",cache=TRUE}
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+dim(training); dim(testing)
+```
+
+---
+
+### Feature plot
+
+```{r ,dependson="trainingTest",fig.height=8,fig.width=8}
+featurePlot(x=training[,c("age","education","jobclass")],
+            y = training$wage,
+            plot="pairs")
+```
+
+
+---
+
+### Plot age versus wage
+
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(age,wage,data=training)
+```
+
+there is some trend but some out line up there 
+---
+
+### Plot age versus wage colour by jobclass
+
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(age,wage,colour=jobclass,data=training)
+```
+
+age vs out come with another one colored 
+---
+
+### Plot age versus wage colour by education
+
+
+```{r ,dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(age,wage,colour=education,data=training)
+```
+
+degree explain the trend up there
+
+---
+
+### Fit a linear model 
+
+$$ ED_i = b_0 + b_1 age + b_2 I(Jobclass_i="Information") + \sum_{k=1}^4 \gamma_k I(education_i= level k) $$
+
+fit more than one line 
+
+* I( ) means indicator variable
+
+    *the b2 will represent the deffrent in the outcome (wages) if the job = info or indust
+    *Education levels: 1 = HS Grad, 2 = Some College, 3 = College Grad, 4 = Advanced Degree
+
+
+```{r modelFit,dependson="trainingTest", cache=TRUE,fig.height=4,fig.width=4}
+modFit<- train(wage ~ age + I(jobclass) + I(education),
+               method = "lm",data=training)
+finMod <- modFit$finalModel
+print(modFit)
+```
+
+
+
+---
+
+### Diagnostics residual 
+
+```{r,dependson="modelFit",fig.height=5,fig.width=5}
+plot(finMod , 1 , pch=19 , cex=0.5 , col="#00000010" )
+```
+
+
+---
+
+### Color by variables not used in the model 
+
+```{r,dependson="modelFit",fig.height=4,fig.width=6}
+qplot( finMod$fitted , finMod$residuals , colour = race , data = training)
+```
+some of outliers are represented by race up there 
+
+---
+
+### Plot by index vs residuals
+
+```{r,dependson="modelFit",fig.height=5,fig.width=5}
+plot(finMod$residuals,pch=19)
+```
+
+if we see trend for residual outlier that mean that there is variable missing from the model 
+---
+
+### Predicted versus truth in test set
+
+ideally it should be a 45 degree line and see what our model has missed 
+
+but we cant go back and train if we used test set 
+```{r predictions, dependson="modelFit",fig.height=4,fig.width=6}
+pred <- predict(modFit, testing)
+qplot(wage,pred,colour=year,data=testing)
+```
+
+---
+
+### If you want to use all covariates
+
+```{r allCov,dependson="trainingTest",fig.height=4,fig.width=4,warning=FALSE}
+modFitAll<- train(wage ~ .,data=training,method="lm")
+pred <- predict(modFitAll, testing)
+qplot(wage,pred,data=testing)
+```
+
+a lot bit better with all variables 
+---
+
+### Notes and further reading
+
+* Often useful in combination with other models 
+
+---
+
+
+## quiz 2 
+
+```{r}
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+```
+
+
+```{r}
+library(AppliedPredictiveModeling)
+data(concrete)
+library(caret)
+set.seed(1000)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+```
+
+```{r}
+library(GGally)
+library(Hmisc)
+training2 <- training
+#cut CompressiveStrength into 4 levels.  This is the only way to work with colour in ggpair
+training2$CompressiveStrength <- cut2(training2$CompressiveStrength, g=4)
+ggpairs(data = training2, columns = c("FlyAsh","Age","CompressiveStrength"), mapping = ggplot2::aes(colour = CompressiveStrength))
+```
+
+
+---
+
+```{r}
+library(AppliedPredictiveModeling)
+data(concrete)
+library(caret)
+set.seed(1000)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+```
+
+
+Make a histogram and confirm the SuperPlasticizer variable is skewed. Normally you might use the log transform to try to make the data more symmetric.
+Why would that be a poor choice for this variable?
+```{r}
+par(mfrow = c(2,1))
+hist(training$Superplasticizer)
+hist(log(training$Superplasticizer + 1))
+```
+
+```{r}
+summary(training)
+```
+There are a large number of values that are the same and even if you took the log(SuperPlasticizer + 1) they would still all be identical so the distribution would not be symmetric.
+
+
+
+Find all the predictor variables in the training set that begin with IL. Perform principal components on these variables with the preProcess() function from the caret package. Calculate the number of principal components needed to capture 80% of the variance. How many are there?
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+trainingIL <- training[,grep("^IL", names(training))]
+procTrain <- preProcess(trainingIL, method = "pca", thresh = 0.8 )
+procTrain
+```
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+IL_Colnames = grep("^IL", colnames(training), value=TRUE,ignore.case=TRUE)
+pcaMod <- preProcess(training[,IL_Colnames], method="pca", thresh=0.9)
+pcaMod
+```
+
+---
+
+Create a training data set consisting of only the predictors with variable names beginning with IL and the diagnosis. Build two predictive models, one using the predictors as they are and one using PCA with principal components explaining 80% of the variance in the predictors. Use method="glm" in the train function.
+
+What is the accuracy of each method in the test set? Which is more accurate?
+
+
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+# grep all columns with IL and diagnosis in the traning and testing set
+trainingIL <- training[,grep("^IL|diagnosis", names(training))]
+testingIL <- testing[,grep("^IL|diagnosis", names(testing))]
+
+# non-PCA
+model <- train(diagnosis ~ ., data = trainingIL, method = "glm")
+predict_model <- predict(model, newdata= testingIL)
+matrix_model <- confusionMatrix(predict_model, testingIL$diagnosis)
+matrix_model$overall[1]
+```
+
+```{r}
+# PCA
+modelPCA <- train(diagnosis ~., data = trainingIL, method = "glm", preProcess = "pca",trControl=trainControl(preProcOptions=list(thresh=0.8)))
+matrix_modelPCA <- confusionMatrix(testingIL$diagnosis, predict(modelPCA, testingIL))
+matrix_modelPCA$overall[1]
+```
+
+---
+
+## 19 Predicting with trees
+
+
+### Key ideas
+
+* Iteratively split variables into groups
+* Evaluate "homogeneity" within each group
+* Split again if necessary
+
+__Pros__:
+
+* Easy to interpret
+* Better performance in nonlinear settings
+
+__Cons__:
+
+* Without pruning/cross-validation can lead to overfitting
+* Harder to estimate uncertainty
+* Results may be variable
+
+---
+
+### Basic algorithm
+
+1. Start with all variables in one group
+2. Find the variable/split that best separates the outcomes
+3. Divide the data into two groups ("leaves") on that split ("node")
+4. Within each split, find the best variable/split that separates the outcomes
+5. Continue until the groups are too small or sufficiently "pure"
+
+
+---
+
+### Measures of impurity
+
+$$\hat{p}_{mk} = \frac{1}{N_m}\sum_{x_i\; in \; Leaf \; m}\mathbb{1}(y_i = k)$$
+
+__Misclassification Error__: 
+$$ 1 - \hat{p}_{m k(m)}; k(m) = {\rm most; common; k}$$
+
+* 0 = perfect purity no Misclassification
+* 0.5 = no purity just balance 
+* 1 = perfect purity no Misclassification in the other dircetion
+
+__Gini index__:
+$$ \sum_{k \neq k'} \hat{p}_{mk} \times \hat{p}_{mk'} = \sum_{k=1}^K \hat{p}_{mk}(1-\hat{p}_{mk}) = 1 - \sum_{k=1}^K p_{mk}^2$$
+
+* 0 = perfect purity no Misclassification
+* 0.5 = no purity just balance 
+* 1 = perfect purity no Misclassification in the other dircetion
+
+__Deviance/information gain__:
+
+$$ -\sum_{k=1}^K \hat{p}_{mk} \log_2\hat{p}_{mk} $$
+
+* 0 = perfect purity no Misclassification
+* 0.5 = no purity just balance 
+* 1 = perfect purity no Misclassification in the other dircetion
+
+
+--- &twocol w1:50% w2:50%
+### Measures of impurity
+
+*** =left
+
+```{r leftplot,fig.height=3,fig.width=4,echo=FALSE,fig.align="center"}
+par(mar=c(0,0,0,0)); set.seed(1234); x = rep(1:4,each=4); y = rep(1:4,4)
+plot(x,y,xaxt="n",yaxt="n",cex=3,col=c(rep("blue",15),rep("red",1)),pch=19)
+```
+
+* __Misclassification:__ $1/16 = 0.06$
+* __Gini:__ $1 - [(1/16)^2 + (15/16)^2] = 0.12$
+* __Information:__$-[1/16 \times log2(1/16) + 15/16 \times log2(15/16)] = 0.34$
+
+*** =right
+
+```{r,dependson="leftplot",fig.height=3,fig.width=4,echo=FALSE,fig.align="center"}
+par(mar=c(0,0,0,0)); 
+plot(x,y,xaxt="n",yaxt="n",cex=3,col=c(rep("blue",8),rep("red",8)),pch=19)
+```
+
+* __Misclassification:__ $8/16 = 0.5$
+* __Gini:__ $1 - [(8/16)^2 + (8/16)^2] = 0.5$
+* __Information:__$-[1/16 \times log2(1/16) + 15/16 \times log2(15/16)] = 1$
+
+not good split it's just coin flip 
+
+
+
+---
+
+### Example: Iris Data
+
+```{r iris, cache=TRUE}
+data(iris); library(ggplot2)
+names(iris)
+table(iris$Species)
+```
+
+
+---
+
+### Create training and test sets
+
+```{r trainingTest, dependson="iris",cache=TRUE}
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training); dim(testing)
+```
+
+
+---
+
+### Iris petal widths/sepal width
+
+```{r, dependson="trainingTest",fig.height=4,fig.width=6}
+qplot(Petal.Width,Sepal.Width,colour=Species,data=training)
+```
+there is 3 cluster here 
+it might be little challenging for linear model but not so much challenge for the tree model 
+
+---
+
+### Iris petal widths/sepal width
+
+```{r createTree, dependson="trainingTest", cache=TRUE}
+library(caret)
+modFit <- train(Species ~ ., method = "rpart" , data=training )
+print(modFit$finalModel)
+```
+
+---
+
+### Plot tree
+
+```{r, dependson="createTree", fig.height=4.5, fig.width=4.5}
+plot( modFit$finalModel, uniform=TRUE, 
+      main="Classification Tree")
+text( modFit$finalModel , use.n = TRUE, all=TRUE, cex=.8)
+```
+
+
+---
+
+### Prettier plots
+
+```{r, dependson="createTree", fig.height=4.5, fig.width=4.5}
+library(rattle)
+fancyRpartPlot(modFit$finalModel)
+```
+
+---
+
+### Predicting new values
+
+```{r newdata, dependson="createTree", fig.height=4.5, fig.width=4.5, cache=TRUE}
+predict(modFit,newdata=testing)
+```
+
+---
+
+### Notes and further resources
+
+* Classification trees are non-linear models
+  * They use interactions between variables
+  * Data transformations may be less important (monotone transformations)
+  * Trees can also be used for regression problems (continuous outcome)
+* Note that there are multiple tree building options
+in R both in the caret package - [party], [rpart] and out of the caret package - [tree].
+
+---
+
+##  20 Bootstrap aggregating (bagging)
+
+__Basic idea__: 
+
+1. Resample cases and recalculate predictions
+2. Average or majority vote
+
+__Notes__:
+
+* Similar bias 
+* Reduced variance
+* More useful for non-linear functions
+
+
+---
+
+### Ozone data
+
+```{r ozoneData, cache=TRUE}
+#library(ElemStatLearn); data(ozone,package="ElemStatLearn")
+#lazyLoad(filebase = "data//Rdata", envir = parent.frame())
+ozone <- ozone[order(ozone$ozone),]
+head(ozone)
+```
+
+
+---
+
+### Bagged loess
+
+```{r baggedOzone, dependson="ozoneData",cache=TRUE}
+ll <- matrix(NA,nrow=10,ncol=155)
+
+for(i in 1:10){
+  ss <- sample(1:dim(ozone)[1],replace=T) #with replemcmnt 
+  ozone0 <- ozone[ss,]; ozone0 <- ozone0[order(ozone0$ozone),]
+  loess0 <- loess(temperature ~ ozone,data=ozone0,span=0.2) #curve smooth to the data 
+  ll[i,] <- predict(loess0,newdata=data.frame(ozone=1:155)) #pred for new vALUE 
+}
+```
+
+---
+
+### Bagged loess
+
+```{r, dependson="baggedOzone",fig.height=4.5,fig.width=4.5}
+plot(ozone$ozone,ozone$temperature,pch=19,cex=0.5)
+for(i in 1:10){lines(1:155,ll[i,],col="grey",lwd=2)}
+lines(1:155,apply(ll,2,mean),col="red",lwd=2)
+```
+the red line is the average of fitted curves
+
+---
+
+### Bagging in caret
+
+* Some models perform bagging for you, in `train` function consider `method` options 
+  * `bagEarth` 
+  * `treebag`
+  * `bagFDA`
+* Alternatively you can bag any model you choose using the `bag` function
+
+---
+
+### More bagging in caret
+
+```{r bag1}
+library(party)
+predictors = data.frame(ozone=ozone$ozone)
+temperature = ozone$temperature
+treebag <- bag(predictors, temperature, B = 10,
+                bagControl = bagControl(fit = ctreeBag$fit,
+                                        predict = ctreeBag$pred,
+                                        aggregate = ctreeBag$aggregate))
+```
+
+http://www.inside-r.org/packages/cran/caret/docs/nbBag
+
+
+---
+
+### Example of custom bagging (continued)
+
+```{r,dependson="bag1",fig.height=4,fig.width=4}
+plot(ozone$ozone,temperature,col='lightgrey',pch=19)
+points(ozone$ozone,predict(treebag$fits[[1]]$fit,predictors),pch=19,col="red")
+points(ozone$ozone,predict(treebag,predictors),pch=19,col="blue")
+```
+
+
+---
+
+### Parts of bagging
+
+```{r}
+ctreeBag$fit
+```
+
+
+```{r}
+ctreeBag$pred
+```
+
+
+```{r}
+ctreeBag$aggregate
+```
+
+---
+
+## Notes and further resources
+
+__Notes__:
+
+* Bagging is most useful for nonlinear models
+* Often used with trees - an extension is random forests
+* Several models use bagging in caret's _train_ function
+
+__Further resources__:
+
+* [Bagging](http://en.wikipedia.org/wiki/Bootstrap_aggregating)
+* [Bagging and boosting](http://stat.ethz.ch/education/semesters/FS_2008/CompStat/sk-ch8.pdf)
+* [Elements of Statistical Learning](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+
+---
+
+
+## 21 Random forests
+
+
+1. Bootstrap samples
+2. At each split, bootstrap variables
+3. Grow multiple trees and vote
+
+__Pros__:
+
+1. Accuracy
+
+__Cons__:
+
+1. Speed
+2. Interpretability
+3. Overfitting
+
+[http://www.robots.ox.ac.uk/~az/lectures/ml/lect5.pdf](http://www.robots.ox.ac.uk/~az/lectures/ml/lect5.pdf)
+
+
+---
+### Iris data
+
+```{r iris, cache=TRUE}
+data(iris); library(ggplot2); library(caret)
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+```
+
+
+---
+
+### Random forests
+
+```{r forestIris, dependson="irisData",fig.height=4,fig.width=4,cache=TRUE}
+library(caret)
+modFit <- train(Species~ .,data=training,method="rf",prox=TRUE)
+modFit
+```
+
+---
+
+### Getting a single tree
+
+```{r , dependson="forestIris",fig.height=4,fig.width=4}
+library(randomForest)
+getTree(modFit$finalModel,k=2)
+```
+
+---
+
+### Class "centers"
+
+```{r centers, dependson="forestIris",fig.height=4,fig.width=4}
+irisP <- classCenter(training[,c(3,4)], training$Species, modFit$finalModel$prox)
+irisP <- as.data.frame(irisP); irisP$Species <- rownames(irisP)
+p <- qplot(Petal.Width, Petal.Length, col=Species,data=training)
+p + geom_point(aes(x=Petal.Width,y=Petal.Length,col=Species),size=5,shape=4,data=irisP)
+```
+
+---
+
+### Predicting new values
+
+```{r predForest, dependson="centers",fig.height=4,fig.width=4,cache=TRUE}
+pred <- predict(modFit,testing); testing$predRight <- pred==testing$Species
+table(pred,testing$Species)
+```
+
+---
+
+### Predicting new values
+
+```{r, dependson="predForest",fig.height=4,fig.width=4}
+qplot(Petal.Width,Petal.Length,colour=predRight,data=testing,main="newdata Predictions")
+```
+
+---
+
+### Notes and further resources
+
+__Notes__:
+
+* Random forests are usually one of the two top
+performing algorithms along with boosting in prediction contests.
+* Random forests are difficult to interpret but often very accurate. 
+* Care should be taken to avoid overfitting (see [rfcv](http://cran.r-project.org/web/packages/randomForest/randomForest.pdf) funtion)
+---
+
+
+## 22 Boosting
+
+
+### Basic idea
+
+1. Take lots of (possibly) weak predictors
+2. Weight them and add them up like bagging or randomforest 
+3. Get a stronger predictor
+
+
+---
+
+### Basic idea behind boosting
+
+1. Start with a set of classifiers $h_1,\ldots,h_k$
+  * Examples: All possible trees, all possible regression models, all possible cutoffs.
+2. Create a classifier that combines classification functions:
+$f(x) = \rm{sgn}\left(\sum_{t=1}^T \alpha_t h_t(x)\right)$.
+  
+  * Goal is to minimize error (on training set)
+  * Iterative, select one $h$ at each step
+  * Calculate weights based on errors
+  * Upweight missed classifications and select next $h$
+  
+  
+[Adaboost on Wikipedia](http://en.wikipedia.org/wiki/AdaBoost)
+
+[http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf](http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf)
+
+---
+
+### Boosting in R 
+
+* Boosting can be used with any subset of classifiers
+
+* One large subclass is [gradient boosting](http://en.wikipedia.org/wiki/Gradient_boosting)
+
+* R has multiple boosting libraries. Differences include the choice of basic classification functions and combination rules.
+  * [gbm](http://cran.r-project.org/web/packages/gbm/index.html) - boosting with trees.
+  * [mboost](http://cran.r-project.org/web/packages/mboost/index.html) - model based boosting
+  * [ada](http://cran.r-project.org/web/packages/ada/index.html) - statistical boosting based on [additive logistic regression](http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1016218223)
+  * [gamBoost](http://cran.r-project.org/web/packages/GAMBoost/index.html) for boosting generalized additive models
+
+* Most of these are available in the caret package 
+
+
+
+---
+
+### Wage example
+
+```{r wage, cache=TRUE}
+library(ISLR); data(Wage); library(ggplot2); library(caret);
+Wage <- subset(Wage,select=-c(logwage))
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+```
+
+
+---
+
+### Fit the model
+gbm boosting with trees 
+
+```{r, dependson="wage", cache=TRUE}
+modFit <- train(wage ~ ., method="gbm",data=training,verbose=FALSE)
+print(modFit)
+```
+
+---
+
+### Plot the results
+
+```{r, dependson="wage", fig.height=4,fig.width=4}
+qplot(predict(modFit,testing),wage,data=testing)
+```
+
+
+
+---
+
+### Notes and further reading
+
+* A couple of nice tutorials for boosting
+  * Freund and Shapire - [http://www.cc.gatech.edu/~thad/6601-gradAI-fall2013/boosting.pdf](http://www.cc.gatech.edu/~thad/6601-gradAI-fall2013/boosting.pdf)
+  * Ron Meir- [http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf](http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf)
+
+* Boosting, random forests, and model ensembling are the most common tools that win Kaggle and other prediction contests. 
+  * [http://www.netflixprize.com/assets/GrandPrize2009_BPC_BigChaos.pdf](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BigChaos.pdf)
+  
+  * [https://kaggle2.blob.core.windows.net/wiki-files/327/09ccf652-8c1c-4a3d-b979-ce2369c985e4/Willem%20Mestrom%20-%20Milestone%201%20Description%20V2%202.pdf](https://kaggle2.blob.core.windows.net/wiki-files/327/09ccf652-8c1c-4a3d-b979-ce2369c985e4/Willem%20Mestrom%20-%20Milestone%201%20Description%20V2%202.pdf)
+  
+---
+
+## Model based prediction
+
+
+### Basic idea
+
+1. Assume the data follow a probabilistic model
+2. Use Bayes' theorem to identify optimal classifiers
+
+__Pros:__
+
+* Can take advantage of structure of the data
+* May be computationally convenient
+* Are reasonably accurate on real problems
+
+__Cons:__
+
+* Make additional assumptions about the data
+* When the model is incorrect you may get reduced accuracy
+
+---
+
+### Model based approach
+
+
+1. Our goal is to build parametric model for conditional distribution $P(Y = k | X = x)$
+
+2. A typical approach is to apply [Bayes theorem](http://en.wikipedia.org/wiki/Bayes'_theorem):
+$$ Pr(Y = k | X=x) = \frac{Pr(X=x|Y=k)Pr(Y=k)}{\sum_{\ell=1}^K Pr(X=x |Y = \ell) Pr(Y=\ell)}$$
+$$Pr(Y = k | X=x) = \frac{f_k(x) \pi_k}{\sum_{\ell = 1}^K f_{\ell}(x) \pi_{\ell}}$$
+
+3. Typically prior probabilities $\pi_k$ are set in advance.
+
+4. A common choice for $$f_k(x) = \frac{1}{\sigma_k \sqrt{2 \pi}}e^{-\frac{(x-\mu_k)^2}{\sigma_k^2}}$$, a Gaussian distribution
+
+5. Estimate the parameters ($\mu_k$,$\sigma_k^2$) from the data.
+
+6. Classify to the class with the highest value of $P(Y = k | X = x)$
+
+---
+
+### Classifying using the model
+
+A range of models use this approach
+
+* Linear discriminant analysis assumes $f_k(x)$ is multivariate Gaussian with same covariances
+lines throw the data 
+
+* Quadratic discrimant analysis assumes $f_k(x)$ is multivariate Gaussian with different covariances
+quadratic curves
+
+* [Model based prediction](http://www.stat.washington.edu/mclust/) assumes more complicated versions for the covariance matrix 
+
+* Naive Bayes assumes independence between features for model building
+
+
+http://statweb.stanford.edu/~tibs/ElemStatLearn/
+
+
+---
+
+### Why linear discriminant analysis?
+
+$$log \frac{Pr(Y = k | X=x)}{Pr(Y = j | X=x)}$$
+when the ratio increase so the log of the ratio 
+
+
+$$ = log \frac{f_k(x)}{f_j(x)} + log \frac{\pi_k}{\pi_j}$$
+lof of the ratio of the 2 gaussian densities + log of the ratio of 0 prior probabilites
+
+
+$$ = log \frac{\pi_k}{\pi_j} - \frac{1}{2}(\mu_k + \mu_j)^T \Sigma^{-1}(\mu_k + \mu_j)$$
+linear term 
+$$ + x^T \Sigma^{-1} (\mu_k - \mu_j)$$
+
+
+http://statweb.stanford.edu/~tibs/ElemStatLearn/
+
+---
+
+### Discriminant function
+
+$$\delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2}\mu_k \Sigma^{-1}\mu_k + log(\mu_k)$$
+uk is the mean of the class k 
+pick value of k which get the largerst value of the discriminate function 
+
+* Decide on class based on $\hat{Y}(x) = argmax_k \delta_k(x)$
+
+* We usually estimate parameters with maximum likelihood
+
+
+---
+
+### Naive Bayes
+
+Suppose we have many predictors, we would want to model: $P(Y = k | X_1,\ldots,X_m)$
+
+We could use Bayes Theorem to get:
+
+$$P(Y = k | X_1,\ldots,X_m) = \frac{\pi_k P(X_1,\ldots,X_m| Y=k)}{\sum_{\ell = 1}^K P(X_1,\ldots,X_m | Y=k) \pi_{\ell}}$$
+$$ \propto \pi_k P(X_1,\ldots,X_m| Y=k)$$
+picking the largest probability of this will get the largest probabilty as the denominator is the same 
+
+
+This can be written:
+
+$$P(X_1,\ldots,X_m, Y=k) = \pi_k P(X_1 | Y = k)P(X_2,\ldots,X_m | X_1,Y=k)$$
+$$ = \pi_k P(X_1 | Y = k) P(X_2 | X_1, Y=k) P(X_3,\ldots,X_m | X_1,X_2, Y=k)$$
+$$ = \pi_k P(X_1 | Y = k) P(X_2 | X_1, Y=k)\ldots P(X_m|X_1\ldots,X_{m-1},Y=k)$$
+
+We could make an assumption to write this:
+
+$$ \approx \pi_k P(X_1 | Y = k) P(X_2 | Y = k)\ldots P(X_m |,Y=k)$$
+
+---
+
+## Example: Iris Data
+
+```{r iris, cache=TRUE}
+data(iris); library(ggplot2)
+names(iris)
+table(iris$Species)
+```
+
+
+---
+
+### Create training and test sets
+
+```{r trainingTest, dependson="iris",cache=TRUE}
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training); dim(testing)
+```
+
+---
+
+### Build predictions
+nb method for naive base
+```{r fit,dependson="trainingTest"}
+modlda = train(Species ~ .,data=training,method="lda")
+modnb = train(Species ~ ., data=training,method="nb")
+plda = predict(modlda,testing); pnb = predict(modnb,testing)
+table(plda,pnb)
+```
+
+
+---
+
+### Comparison of results
+
+```{r,dependson="fit",fig.height=4,fig.width=4}
+equalPredictions = (plda==pnb)
+qplot(Petal.Width,Sepal.Width,colour=equalPredictions,data=testing)
+```
+
+---
+
+
+## quiz 3 
+
+For this quiz we will be using several R packages. R package versions change over time, the right answers have been checked using the following versions of the packages.
+
+AppliedPredictiveModeling: v1.1.6
+
+caret: v6.0.47
+
+ElemStatLearn: v2012.04-0
+
+pgmm: v1.1
+
+rpart: v4.1.8
+
+If you aren't using these versions of the packages, your answers may not exactly match the right answer, but hopefully should be close.
+
+Load the cell segmentation data from the AppliedPredictiveModeling package using the commands
+
+```{r}
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+```
+
+1. Subset the data to a training set and testing set based on the Case variable in the data set.
+
+2. Set the seed to 125 and fit a CART model with the rpart method using all predictor variables and default caret settings.
+
+3. In the final model what would be the final model prediction for cases with the following variable values:
+
+a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2
+
+b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100
+
+c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100
+
+d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2
+
+1 point
+
+```{r}
+subset <- split(segmentationOriginal, segmentationOriginal$Case)
+set.seed(125)
+library(rpart)
+modCART <- rpart(Class ~ ., data=subset$Train)
+modCART
+library(ggplot2)
+suppressMessages(library(rattle))
+fancyRpartPlot(modCART)
+```
+
+```{r}
+# a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2
+testA <- segmentationOriginal[0,]
+testA[1,c("TotalIntenCh2", "FiberWidthCh1", "PerimStatusCh1")] <- c(23000, 10, 2)
+predict(modCART, testA, type="prob")
+# b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100
+testB <- segmentationOriginal[0,]
+testB[1,c("TotalIntenCh2", "FiberWidthCh1", "VarIntenCh4")] <- c(50000, 10, 100)
+predict(modCART, testB, type="prob")
+# c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100
+testC <- segmentationOriginal[0,]
+testC[1,c("TotalIntenCh2", "FiberWidthCh1", "VarIntenCh4")] <- c(57000, 8, 100)
+predict(modCART, testC, type="prob")
+# d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2
+testD <- segmentationOriginal[0,]
+testD[1,c("FiberWidthCh1", "VarIntenCh4","PerimStatusCh1")] <- c(8, 100, 2)
+predict(modCART, testD, type="prob")
+```
+
