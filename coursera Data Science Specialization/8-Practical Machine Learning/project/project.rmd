@@ -22,7 +22,7 @@ library(randomForest)
 library(rpart)
 library(rpart.plot)
 library(rattle)
-set.seed(1)
+set.seed(12345)
 ```
 
 ## load data 
@@ -39,13 +39,18 @@ head(train)
 ```
 
 ```{r}
+summary(train)
+```
+
+
+```{r}
 dim(train)
 dim(test)
 ```
 
 ## cleaning data set 
 
-there seems to be alot of NA cloumns 
+there seems to be alot of NA cloumns lets remove any column with 80 or more of it's data mssing.
 
 ```{r}
 #Remove NA cols
@@ -55,73 +60,106 @@ test <- test[,todrop_columns]
 dim(train)
 dim(test)
 ```
+now we have 60 column out of 160 column that mean there was 100 extra column at least 
+
+```{r}
+summary(train)
+```
+
+
+```{r}
+#convert them into factors 
+cols <- c("classe")
+train[cols] <- lapply(train[cols], factor)
+```
+
+
 ```{r}
 colnames(train) == colnames(test)
 ```
-
+i just wanted to check we didnt remove needed column from one of the data sets lets check the last column 
 ```{r}
-head(train)
+head(train[60])
+head(test[60])
 ```
+looks like the last column is more like and id 
+
 ## explore more 
-
-```{r}
-splom(classe~train[1:5], data = train)
-```
-
+see the distripution of the classes 
 ```{r}
 barplot(table(train$classe))
 ```
 
 ## split the train data set 
 
+
 ```{r}
-inTrain = createDataPartition(train$classe, p = 3/4)[[1]]
-training = train[ inTrain,]
-testing = train[-inTrain,]
+intrain <- createDataPartition(y = train$classe ,  p=0.75, list=FALSE)
+Training <- training[intrain, ] 
+Testing <- training[-intrain, ]
+```
+
+```{r}
+barplot(table(train$classe))
 ```
 
 ## start fitting the models 
 
 ### random forest 
+lets start with random forest with classe to predect based on all other variables with out the frist 6 vairables which i think are irrlevent 
+```{r}
+ 
+model_rf <- randomForest( classe ~ .,  data =training[6:60], method="class")
+```
+
+lets evaluate that model 
+
 
 ```{r}
-training$classe = factor(training$classe) 
-model_rf <- randomForest( classe ~ .,  data =training,  ntree = 250)
-pred_rf <- predict(model_rf, testing)
+pred_rf <- predict(model_rf, testing, type = "class")
 rf1 <- table(pred_rf, testing$classe)
 confusionMatrix(rf1)
 ```
+99 % accuracy with this model 
+
 ### Liner Discriminant Analysis
+same idea with LDA 
+```{r}
+model_lda <- train(classe ~ ., data = training[6:60], method = "lda")
+```
 
 ```{r}
-model_lda <- train(classe ~ ., data = training, method = "lda")
 pred_lda <- predict(model_lda, testing)
 lda1 <- table(pred_lda, testing$classe)
 confusionMatrix(lda1)
 ```
-
+poor accuracy with only 70 %
 
 ### Recursive Partitioning and Regression Trees
 
 ```{r}
-model_rpart <- train(classe ~ ., data = training, method = "rpart")
+model_rpart <- train(classe ~ ., data = training[6:60], method = "rpart")
 pred_rpart<- predict(model_rpart, testing)
 rpart1 <- table(pred_rpart, testing$classe)
 confusionMatrix(rpart1)
 ```
-
+that model was poor accuracy with only 49%
 plot the tree 
 
 ```{r}
 library(rattle)
 fancyRpartPlot(model_rpart$finalModel)
 ```
-
+## model selection
 
 ## summury
 it looks like the random forest model has the higest Accuracy  so i will stick with it 
 ```{r}
-final_data <- predict(model_rf, test)
+final_data <- predict(model_rf, test, type = "class")
 final_data
+```
+
+```{r}
+barplot(table(final_data))
 ```
 
