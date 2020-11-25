@@ -94,9 +94,9 @@ barplot(table(train$classe))
 
 
 ```{r}
-intrain <- createDataPartition(y = train$classe ,  p=0.75, list=FALSE)
-Training <- training[intrain, ] 
-Testing <- training[-intrain, ]
+intrain <- createDataPartition(y = train$classe ,  p = 0.8, list = FALSE)
+training <- train[intrain, ] 
+testing <- train[-intrain, ]
 ```
 
 ```{r}
