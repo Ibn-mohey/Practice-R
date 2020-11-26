@@ -1,0 +1,38 @@
+---
+title: "notes"
+author: "Abd-elrhman mohey"
+date: "11/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(shiny)
+```
+
+```{r}
+#use 
+?builder
+```
+
+
+## Multi Line Graph
+
+You can show multiple lines by specifying the column in the data frame that
+separates the lines:
+
+```{r, eval=FALSE}
+library(plotly)
+library(tidyr)
+library(dplyr)
+data("EuStockMarkets")
+
+stocks <- as.data.frame(EuStockMarkets) %>%
+  gather(index, price) %>% #to long format 
+  mutate(time = rep(time(EuStockMarkets), 4)) #create time variable 
+
+plot_ly(stocks, x = ~time, y = ~price, color = ~index, type = "scatter", mode = "lines")
+```
