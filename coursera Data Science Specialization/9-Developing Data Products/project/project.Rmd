@@ -1,0 +1,45 @@
+---
+title: 'Peer-graded Assignment: R Markdown and Leaflet'
+author: "Abd-elrhman mohey"
+date: "11/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Instruction
+
+Create a web page using R Markdown that features a map created with Leaflet.
+Host your webpage on either GitHub Pages, RPubs, or NeoCities.
+Your webpage must contain the date that you created the document, and it must contain a map created with Leaflet. We would love to see you show off your creativity!
+
+## load needed librabries 
+
+```{r}
+library(leaflet)
+```
+
+## Create an Icon for the map
+
+```{r}
+icon <- makeIcon(
+                  iconUrl = "https://preview.redd.it/itq8rpld8va51.png?width=256&format=png&auto=webp&s=9701ba6228c29bf2d7e3dfffd45b9a3562507289",
+                  iconWidth = 20*215/230, iconHeight =20,
+                  iconAnchorX = 31*215/230/2, iconAnchorY = 16
+)
+
+```
+
+## create the map for my home 
+
+```{r}
+my_map <- leaflet() %>%
+            addTiles() %>%
+            addMarkers( lat = 30.79892219281701, lng = 31.006684494354687,icon = icon, popup = "Home <3") 
+                        
+my_map
+```
+
+
