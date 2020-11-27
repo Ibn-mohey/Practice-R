@@ -1,0 +1,10 @@
+name: server
+title:
+username:
+account: ibn-mohey
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3311217
+bundleId: 3912767
+url: https://ibn-mohey.shinyapps.io/server/
+when: 1606486156.58419
