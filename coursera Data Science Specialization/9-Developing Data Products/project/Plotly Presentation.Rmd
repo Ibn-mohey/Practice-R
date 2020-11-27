@@ -1,0 +1,25 @@
+---
+title: 'Peer-graded Assignment: R Markdown Presentation & Plotly'
+author: "Abd-elrhman mohey"
+date: "11/26/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+## objective 
+
+1. Create a web page presentation using R Markdown 
+2. feature a plot created with Plotly. 
+3. Host your webpage on either GitHub Pages, RPubs, or NeoCities. 
+4. webpage must contain the date for the created document, and it must contain a plot created with Plotly.
+
+## the code
+load the libirary and the data and plot 
+```{r ,message=FALSE, warning=FALSE,fig.width=6, fig.height=4}
+library(plotly)
+plot_ly(mtcars, x=~mpg, y=~disp, mode="markers")
+```
+
