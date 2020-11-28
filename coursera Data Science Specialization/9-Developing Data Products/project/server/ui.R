@@ -11,7 +11,7 @@ library(shiny)
 
 shinyUI(
     navbarPage("Data science project",
-               tabPanel("business understanding",
+               tabPanel("About the data",
                         #this is dirictly from the mtcars help
                         h2("Motor Trend Car Road Tests"),
                         hr(),
@@ -31,7 +31,7 @@ shinyUI(
                         p("  [, 5]	 drat	 Rear axle ratio"),
                         p("  [, 6]	 wt	 Weight (lb/1000)"),
                         p("  [, 7]	 qsec	 1/4 mile time"),
-                        p("  [, 8]	 vs	 V/S"),
+                        p("  [, 8]	 vs	 Engine (0 = V-shaped, 1 = straight)"),
                         p("  [, 9]	 am	 Transmission (0 = automatic, 1 = manual)"),
                         p("  [,10]	 gear	 Number of forward gears"),
                         p("  [,11]	 carb	 Number of carburetors"),
@@ -47,16 +47,16 @@ shinyUI(
                ),
                
                tabPanel("Get the data",
-                        h2("step 2 of the Data scinec project is to get the data"),
+                        h2("get the data"),
                         hr(),
                         p('Once you start your R program, mtcars data sets available within R along with loaded packages'),
                         p("you can load the data using" ,code('data(mtcars)'),"."),
                         uiOutput("tab")
-                     ),
+               ),
                
-               tabPanel("Explore and Clean Your Data",
+               tabPanel("Explore The Data",
                         fluidPage(
-                            titlePanel("Some data exploration techs to use"),
+                            titlePanel("Miles/(US) gallon"),
                             sidebarLayout(
                                 sidebarPanel(
                                     selectInput("variable", "one variable exploration -select variable:",
@@ -66,32 +66,54 @@ shinyUI(
                                                   "Rear axle ratio" = "drat",
                                                   "Weight (lb/1000)" = "wt",
                                                   "1/4 mile time" = "qsec",
-                                                  "V/S" = "vs",
-                                                  "Transmission" = "am",
+                                                  "Engine shape" = "vs",
+                                                  "Transmission automatic vs manual" = "am",
                                                   "Number of forward gears" = "gear",
                                                   "Number of carburetors" = "carb"
-                                                    )
-                                                ),
-                                    checkboxInput("outliers", "Show BoxPlot's outliers", FALSE)
+                                                )
+                                    )
                                 ),
-                                
-                                
-
                                 mainPanel(
-                                    h3(textOutput("caption")),
+                                    h3(textOutput("rtitle")),
                                     
                                     tabsetPanel(type = "tabs", 
-                                                tabPanel("BoxPlot", plotOutput("mpgBoxPlot")),
-                                                tabPanel("Regression model", 
-                                                         plotOutput("mpgPlot"),
-                                                         verbatimTextOutput("fit")
-                                                )
+                                                tabPanel("Scatterplot", plotOutput("mpgScatterplot")),
+                                                tabPanel("BoxPlot", plotOutput("mpgBoxPlot"))
                                     )
                                 )
                             )
                         )
                ),
                
+               tabPanel("The Model",
+                        fluidPage(
+                            titlePanel("predict next MPG"),
+                            sidebarLayout(
+                                sidebarPanel(
+                                    selectInput("cyl","Select Number of cylinders",c(4 ,6,8)),
+                                    sliderInput("disp","Select Displacement (cu.in.)",100 ,min = 71 , max = 335),
+                                    sliderInput("hp","Select Gross horsepower",         min = 52      ,max =335, value = 100),
+                                    sliderInput("drat","Select Rear axle ratio",        min = 2.76 , max =4.34 ,value = 2),
+                                    sliderInput("wt","Select Weight (1000 lbs)",        min = 1.5    ,max =5.4,value = 3),
+                                    sliderInput("qsec","Select 1/4 mile time",          min = 14.5    ,max =20.22, value =15),
+                                    selectInput("vs","Select Engine Shape",c('V-shaped' = 0,'straight' = 1)),
+                                    selectInput("am","Select Transmission",c('automatic' = 0 , 'manual' = 1)),
+                                    selectInput("gear","Select Number of forward gears",c(3, 4, 5)),
+                                    selectInput("carb","Select Number of carburetors",c(1,2,3,4,6,8))
+                                    
+                                ),
+                                mainPanel(
+                                    h3("Final model"),
+                                    tabsetPanel(type = "tabs",
+                                                tabPanel("Model info" , verbatimTextOutput("fit"),h4("Predicted Miles/(US) gallon of this Car is:"),
+                                                         h3(textOutput("result"))
+                                                         )
+                                    )
+                                    
+                                )
+                            )
+                        )
+               ),
                tabPanel("Github link",
                         uiOutput("gitgub")
                )

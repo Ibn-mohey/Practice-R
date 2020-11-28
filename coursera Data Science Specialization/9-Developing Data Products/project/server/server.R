@@ -24,47 +24,63 @@ shinyServer(function(input, output) {
     #3 explore the data 
     
     
-    
-    
-    formulaText <- reactive({
+    formula <- reactive({
         paste("mpg ~", input$variable)
     })
     
-    formulaTextPoint <- reactive({
-        paste("mpg ~", "as.integer(", input$variable, ")")
+    output$rtitle <- renderText({
+        formula()
     })
     
-    
-    
-    #5 the model 
-    fit <- reactive({
-        lm(as.formula(formulaTextPoint()), data=mpgData)
-    })
-    
-    output$caption <- renderText({
-        formulaText()
-    })
     
     output$mpgBoxPlot <- renderPlot({
-        boxplot(as.formula(formulaText()), 
-                data = mpgData,
-                outline = input$outliers)
+        boxplot(as.formula(formula()), 
+                data = mtcars)
     })
     
+    output$mpgScatterplot <- renderPlot({
+        with(mtcars, {
+            plot(as.formula(formula()))
+        })
+    })
+    
+    #4 the model 
+    fit <- reactive({
+        lm(mpg ~ ., data=mtcars)
+    })
+
     output$fit <- renderPrint({
         summary(fit())
     })
     
-    output$mpgPlot <- renderPlot({
-        with(mpgData, {
-            plot(as.formula(formulaTextPoint()))
-            abline(fit(), col=2)
-        })
-    })
-    url2 <- a("MTcars Data set", href="https://www.kaggle.com/ruiromanini/mtcars")
-    output$tab <- renderUI({
-        tagList("Access My github for this project From here:", url2)
+    output$result <- renderText({
+        
+        
+        fit <- lm(mpg ~ ., data=mtcars)
+        pred <- predict(fit, newdata = data.frame(cyl = as.integer(input$cyl),
+                                                  disp = as.integer(input$disp),
+                                                  hp = as.integer(input$hp),
+                                                  drat = as.integer(input$drat),
+                                                  wt = as.integer(input$wt),
+                                                  qsec = as.integer(input$qsec),
+                                                  vs = as.integer(input$vs),
+                                                  am = as.factor(input$am),
+                                                  gear = as.integer(input$gear),
+                                                  carb = as.integer(input$carb)
+                                                  )
+                        
+                        
+                        )
+        res <- round(pred, digits = 1.5)
+        res
     })
     
+    
+    ## 5 github
+    
+    url2 <- a("Server Project", href="https://github.com/Ibn-mohey/R-general-practice/tree/gh-pages/coursera%20Data%20Science%20Specialization/9-Developing%20Data%20Products/project/server")
+    output$gitgub <- renderUI({
+        tagList("Access My github for this project From here:", url2)
+    })
     
 })
