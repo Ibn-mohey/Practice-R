@@ -103,11 +103,9 @@ The Shiny application in question is entirely up to you. However, if you're havi
 7. Here's your opportunity to give the app +1 for being well done, or neat, or even just a solid effort.
 
 ### Solution for the project 
-[R markdown]()
+[The server](https://ibn-mohey.shinyapps.io/server/)
 
-[HTML]()
-
-[rpubs]()
+[The server code](https://github.com/Ibn-mohey/R-general-practice/tree/gh-pages/coursera%20Data%20Science%20Specialization/9-Developing%20Data%20Products/project/server)
 
 ## Reproducible Pitch Presentation
 
@@ -148,9 +146,7 @@ You can also publish using both formats to github manually using gh-pages, thoug
 8. There were no R errors displayed in the presentation.
 
 ### Solution for the project
-[R markdown]()
+[R markdown](https://github.com/Ibn-mohey/R-general-practice/tree/gh-pages/coursera%20Data%20Science%20Specialization/9-Developing%20Data%20Products/project/presentation)
 
-[HTML]()
-
-[rpubs]()
+[rpubs](https://rpubs.com/Abdelrhman-mohey/projectpresentation)
 
